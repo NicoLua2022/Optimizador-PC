@@ -14,7 +14,7 @@ class Native {
       const encoded = Buffer.from(JSON.stringify(payload)).toString('base64');
       // Run bundled commands via stdin, including from ASAR. Never alter execution policy.
       // Both interpolated arguments are constrained: action is allowlisted; payload is base64.
-      const command = `& { $script = [scriptblock]::Create([Console]::In.ReadToEnd()); & $script -Action '${action}' -Payload '${encoded}' }`;
+      const command = `& { [Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false); $script = [scriptblock]::Create([Console]::In.ReadToEnd()); & $script -Action '${action}' -Payload '${encoded}' }`;
       const child = spawn(executable, ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', command], { windowsHide: true, shell: false });
       child.stdin.on('error', () => {});
       child.stdin.end(script);

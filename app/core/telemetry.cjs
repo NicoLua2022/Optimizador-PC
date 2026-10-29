@@ -19,7 +19,7 @@ class Telemetry {
   connect() {
     if(this.stopped)return;
     let buffer='',stderr='',finished=false;
-    const child=this.launch(powershell(),['-NoLogo','-NoProfile','-NonInteractive','-Command',"& { $script=[scriptblock]::Create([Console]::In.ReadToEnd()); & $script -Action 'metricsStream' }"],{windowsHide:true,shell:false});
+    const child=this.launch(powershell(),['-NoLogo','-NoProfile','-NonInteractive','-Command',"& { [Console]::InputEncoding=New-Object System.Text.UTF8Encoding($false); $script=[scriptblock]::Create([Console]::In.ReadToEnd()); & $script -Action 'metricsStream' }"],{windowsHide:true,shell:false});
     this.child=child;
     const fail=message=>{
       if(finished)return;finished=true;clearTimeout(this.watchdog);child.kill();
