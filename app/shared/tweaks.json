@@ -14,6 +14,10 @@
         "kind": "DWord",
         "value": 1
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -41,7 +45,11 @@
     "policy": {
       "path": "Software\\Policies\\Microsoft\\Windows\\GameDVR",
       "name": "AllowGameDVR"
-    }
+    },
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "background-capture",
@@ -58,6 +66,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -75,6 +87,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -92,6 +108,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -109,6 +129,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -127,7 +151,10 @@
         "value": 1
       }
     ],
-    "maxBuild": 19045
+    "maxBuild": 19045,
+    "windows": [
+      "Windows 10"
+    ]
   },
   {
     "id": "restart-apps",
@@ -144,6 +171,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -161,6 +192,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -178,6 +213,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -195,6 +234,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -212,6 +255,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -229,6 +276,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -247,7 +298,10 @@
         "value": 0
       }
     ],
-    "maxBuild": 19045
+    "maxBuild": 19045,
+    "windows": [
+      "Windows 10"
+    ]
   },
   {
     "id": "silent-apps",
@@ -265,7 +319,10 @@
         "value": 0
       }
     ],
-    "maxBuild": 19045
+    "maxBuild": 19045,
+    "windows": [
+      "Windows 10"
+    ]
   },
   {
     "id": "widgets",
@@ -282,6 +339,9 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 11"
     ]
   },
   {
@@ -300,7 +360,11 @@
         "value": 0
       }
     ],
-    "visual": true
+    "visual": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "taskbar-animations",
@@ -318,7 +382,11 @@
         "value": 0
       }
     ],
-    "visual": true
+    "visual": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "window-animations",
@@ -336,7 +404,11 @@
         "value": "0"
       }
     ],
-    "visual": true
+    "visual": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "menu-delay",
@@ -354,7 +426,11 @@
         "value": "100"
       }
     ],
-    "visual": true
+    "visual": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "task-view",
@@ -372,7 +448,11 @@
         "value": 0
       }
     ],
-    "visual": true
+    "visual": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "mouse-acceleration",
@@ -401,6 +481,10 @@
         "kind": "String",
         "value": "0"
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -419,7 +503,11 @@
         "clearBits": 12
       }
     ],
-    "requireExisting": true
+    "requireExisting": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "filter-shortcut",
@@ -437,7 +525,11 @@
         "clearBits": 12
       }
     ],
-    "requireExisting": true
+    "requireExisting": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "toggle-shortcut",
@@ -455,7 +547,11 @@
         "clearBits": 12
       }
     ],
-    "requireExisting": true
+    "requireExisting": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "advertising-id",
@@ -472,6 +568,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -489,6 +589,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -506,6 +610,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -523,6 +631,10 @@
         "kind": "DWord",
         "value": 0
       }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
     ]
   },
   {
@@ -544,7 +656,11 @@
     "policy": {
       "path": "Software\\Policies\\Microsoft\\Windows\\System",
       "name": "AllowClipboardHistory"
-    }
+    },
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "clipboard-sync",
@@ -565,7 +681,11 @@
     "policy": {
       "path": "Software\\Policies\\Microsoft\\Windows\\System",
       "name": "AllowCrossDeviceClipboard"
-    }
+    },
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "cloud-search",
@@ -589,7 +709,11 @@
         "value": 0
       }
     ],
-    "requireExisting": true
+    "requireExisting": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   },
   {
     "id": "search-highlights",
@@ -607,6 +731,55 @@
         "value": 0
       }
     ],
-    "requireExisting": true
+    "requireExisting": true,
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
+  },
+  {
+    "id": "windowed-optimizations",
+    "category": "Gaming",
+    "title": "Optimizar juegos en ventana (Windows 11)",
+    "description": "Activa la preferencia de optimizaciones para juegos DirectX 10/11 en ventana o sin bordes.",
+    "impact": "Puede reducir latencia y mejorar presentaci\u00f3n en juegos compatibles. Si causa problemas, restaura el valor original. No afecta a todos los juegos.",
+    "refresh": "Cierra y vuelve a abrir el juego despu\u00e9s de aplicar.",
+    "minBuild": 22621,
+    "windows": [
+      "Windows 11"
+    ],
+    "values": [
+      {
+        "path": "Software\\Microsoft\\DirectX\\UserGpuPreferences",
+        "name": "DirectXUserGlobalSettings",
+        "kind": "String",
+        "mergeToken": {
+          "name": "SwapEffectUpgradeEnable",
+          "value": "1"
+        }
+      }
+    ]
+  },
+  {
+    "id": "capture-cursor",
+    "category": "Gaming",
+    "title": "Excluir cursor de las capturas",
+    "description": "Desactiva la preferencia de incluir el cursor en los clips de Xbox.",
+    "impact": "Solo afecta a las grabaciones; no oculta el cursor durante la partida ni garantiza m\u00e1s FPS.",
+    "refresh": "Reinicia la captura.",
+    "minBuild": 19041,
+    "requireExisting": true,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "CursorCaptureEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "windows": [
+      "Windows 10",
+      "Windows 11"
+    ]
   }
 ]

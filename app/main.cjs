@@ -26,6 +26,13 @@ app.whenReady().then(() => {
     const url=new URL(event.senderFrame.url);url.hash='';
     if(process.platform==='win32'&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame&&url.href===page)telemetry.start();
   });
+  register('reviewLaptopPlan',mode=>service.reviewLaptopPlan(mode));
+  register('applyLaptopPlan',id=>service.applyLaptopPlan(id));
+  register('chooseGameExecutable',async id=>{
+    service.game(id);
+    const choice=await dialog.showOpenDialog(window,{title:'Selecciona el ejecutable real del juego',properties:['openFile'],filters:[{name:'Ejecutable',extensions:['exe']}]});
+    return choice.canceled?service.state():service.setGameExecutable(id,choice.filePaths[0]);
+  });
   register('tweakCatalog',()=>service.tweakCatalog());
   register('tweakStatus',()=>service.tweakStatus());
   register('reviewTweaks',ids=>service.reviewTweaks(ids));

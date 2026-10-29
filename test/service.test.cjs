@@ -8,7 +8,7 @@ const {Store,Native}=require('../app/core/native.cjs');
 function fixture(overrides={}) {
   const calls=[],saves=[];
   const store={data:{version:1,games:[{id:'cs2',name:'CS2',source:'Steam',directory:'C:\\Games\\CS2'}],profiles:{cs2:{performance:true,priority:true}},history:[],benchmarks:[]},save(){saves.push(structuredClone(this.data));}};
-  const defaults={priorityGet:[{pid:100,started:'2026-10-29T00:00:00Z',priority:'Normal'}],powerPlans:{active:'balanced',performance:'performance',onBattery:false},powerSet:true,prioritySet:true,animationsGet:true,animationsSet:true,games:[]};
+  const defaults={platform:{caption:'Microsoft Windows 11 Pro',build:22631,productType:1},priorityGet:[{pid:100,started:'2026-10-29T00:00:00Z',priority:'Normal'}],powerPlans:{active:'balanced',performance:'performance',onBattery:false},powerSet:true,prioritySet:true,animationsGet:true,animationsSet:true,games:[]};
   const native={async call(action,payload){calls.push({action,payload,saved:structuredClone(store.data)});const result=Object.hasOwn(overrides,action)?overrides[action]:defaults[action];if(result instanceof Error)throw result;return typeof result==='function'?result(payload):result;}};
   return {service:new Service(native,store,'win32'),store,calls,saves};
 }
@@ -25,7 +25,7 @@ test('battery and unavailable plan fail before global writes',async()=>{
   }
 });
 test('missing running game fails before changing energy',async()=>{
-  const {service,calls}=fixture({priorityGet:new Error('Juego cerrado')});await assert.rejects(service.applyGame('cs2'),/cerrado/);assert.equal(calls.length,1);
+  const {service,calls}=fixture({priorityGet:new Error('Juego cerrado')});await assert.rejects(service.applyGame('cs2'),/cerrado/);assert.equal(calls.filter(c=>c.action!=='platform').length,1);
 });
 test('partial failure rolls back energy and retains ambiguous mutation for recovery',async()=>{
   const {service,store,calls}=fixture({prioritySet:new Error('Acceso denegado')});

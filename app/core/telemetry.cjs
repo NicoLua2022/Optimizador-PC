@@ -3,6 +3,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 function nativeScript() {
   return fs.readFileSync(path.join(__dirname,'../native/bridge.ps1'),'utf8')
+    .replace('# NEXO_PLATFORM_FUNCTIONS',()=>fs.readFileSync(path.join(__dirname,'../native/platform.ps1'),'utf8'))
     .replace('# NEXO_TWEAK_FUNCTIONS',fs.readFileSync(path.join(__dirname,'../native/tweaks.ps1'),'utf8'))
     .replace('__NEXO_CATALOG__',Buffer.from(fs.readFileSync(path.join(__dirname,'../shared/tweaks.json'))).toString('base64'));
 }

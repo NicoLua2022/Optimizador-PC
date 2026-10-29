@@ -1,5 +1,5 @@
 param(
-  [Parameter(Mandatory=$true)][ValidateSet('snapshot','games','powerPlans','powerSet','priorityGet','prioritySet','animationsGet','animationsSet','memoryCandidates','memoryTrim','tweakInspect','tweakWrite','metricsStream')][string]$Action,
+  [Parameter(Mandatory=$true)][ValidateSet('snapshot','games','powerPlans','powerSet','priorityGet','prioritySet','animationsGet','animationsSet','memoryCandidates','memoryTrim','tweakInspect','tweakWrite','metricsStream','platform','gamePreferences','gamePreferenceWrite')][string]$Action,
   [string]$Payload = 'e30='
 )
 $ErrorActionPreference = 'Stop'
@@ -123,14 +123,19 @@ function Get-Candidates {
     try { if (Test-Owned $p.Id) { @{ pid=$p.Id; name=$p.ProcessName; memoryMB=[math]::Round($p.WorkingSet64/1MB); started=$p.StartTime.ToUniversalTime().Ticks.ToString([Globalization.CultureInfo]::InvariantCulture) } } } catch { continue }
   }
 }
+# NEXO_PLATFORM_FUNCTIONS
 # NEXO_TWEAK_FUNCTIONS
 try {
   $data = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Payload)) | ConvertFrom-Json
+  if($Action -in @('powerSet','prioritySet','animationsSet','memoryTrim','tweakWrite','gamePreferenceWrite') -and -not $data.restoring){Assert-SupportedWindows}
   $result = switch ($Action) {
+    'platform' { Get-PlatformInfo }
+    'gamePreferences' { ,@(Get-GamePreferences $data) }
+    'gamePreferenceWrite' { Write-GamePreference $data }
     'metricsStream' {
       while ($true) {
         $cpu = [NexoNative]::CpuSample()
-        $sample = @{ memory=(Get-Memory); cpuPercent=if ($cpu -lt 0) { $null } else { [math]::Round($cpu,1) }; capturedAt=[DateTime]::UtcNow.ToString('o') }
+        $sample = @{ memory=(Get-Memory); power=(Get-PowerSample); cpuPercent=if ($cpu -lt 0) { $null } else { [math]::Round($cpu,1) }; capturedAt=[DateTime]::UtcNow.ToString('o') }
         [Console]::Out.WriteLine((@{data=$sample} | ConvertTo-Json -Depth 6 -Compress))
         [Console]::Out.Flush()
         Start-Sleep -Milliseconds 1000
@@ -150,7 +155,7 @@ try {
       $cpuUsage = Get-CimInstance Win32_PerfFormattedData_PerfOS_Processor -Filter "Name='_Total'" -ErrorAction SilentlyContinue
       $power = New-Object NexoNative+SYSTEM_POWER_STATUS
       $powerOk = [NexoNative]::GetSystemPowerStatus([ref]$power)
-      @{ cpu=($cpu.Name -join ', '); cores=($cpu | Measure-Object NumberOfCores -Sum).Sum; threads=($cpu | Measure-Object NumberOfLogicalProcessors -Sum).Sum; cpuPercent=if ($cpuUsage) { $cpuUsage.PercentProcessorTime } else { $null }; memory=(Get-Memory); gpu=$gpu; disks=$disks; os=$os.Caption; powerPlan=(Get-ActivePlan); onBattery=($powerOk -and $power.ACLineStatus -eq 0); gpuPercent=$null; capturedAt=[DateTime]::UtcNow.ToString('o') }
+      @{ platform=(Get-PlatformInfo); device=(Get-DeviceInfo); cpu=($cpu.Name -join ', '); cores=($cpu | Measure-Object NumberOfCores -Sum).Sum; threads=($cpu | Measure-Object NumberOfLogicalProcessors -Sum).Sum; cpuPercent=if ($cpuUsage) { $cpuUsage.PercentProcessorTime } else { $null }; memory=(Get-Memory); gpu=$gpu; disks=$disks; os=$os.Caption; powerPlan=(Get-ActivePlan); onBattery=($powerOk -and $power.ACLineStatus -eq 0); gpuPercent=$null; capturedAt=[DateTime]::UtcNow.ToString('o') }
     }
     'games' { ,@(Get-Games) }
     'powerPlans' {
@@ -159,9 +164,10 @@ try {
       $power = New-Object NexoNative+SYSTEM_POWER_STATUS
       $ok = [NexoNative]::GetSystemPowerStatus([ref]$power)
       $guid = '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'
-      @{ active=(Get-ActivePlan); performance=if (($list -join '') -match $guid) { $guid } else { $null }; onBattery=(-not $ok -or $power.ACLineStatus -ne 1) }
+      @{ device=(Get-DeviceInfo); balanced=if(($list -join '') -match '381b4222-f694-41f0-9685-ff5bb260df2e'){'381b4222-f694-41f0-9685-ff5bb260df2e'}else{$null}; saver=if(($list -join '') -match 'a1841308-3541-4fab-bc81-f71556f20b4a'){'a1841308-3541-4fab-bc81-f71556f20b4a'}else{$null}; active=(Get-ActivePlan); performance=if (($list -join '') -match $guid) { $guid } else { $null }; onBattery=(-not $ok -or $power.ACLineStatus -ne 1) }
     }
     'powerSet' {
+      if(-not $data.restoring -and [string]$data.value -eq '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c' -and (Get-PowerSample).acConnected -ne $true){throw 'Conecta el cargador o confirma la alimentacion AC antes de activar Alto rendimiento.'}
       $guid = [guid]::Parse([string]$data.value).ToString()
       $list = & "$env:SystemRoot\System32\powercfg.exe" /list
       if ($LASTEXITCODE -ne 0 -or ($list -join '') -notmatch [regex]::Escape($guid)) { throw 'El plan de energia ya no existe.' }

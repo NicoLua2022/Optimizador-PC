@@ -57,7 +57,7 @@ jobs:
           else
             gh release create "$RELEASE_TAG" release/NEXO-Windows-x64.zip \
               --target "$GITHUB_SHA" \
-              --title "NEXO 0.2.0 - Prueba para Windows" \
+              --title "NEXO 0.3.0 - Prueba para Windows" \
               --prerelease \
-              --notes "Descomprime la carpeta completa y abre NEXO.exe. Version 0.2.0: biblioteca de 33 ajustes con revision/restauracion y monitor de RAM cada segundo. Sin firma digital. Los ajustes de energia se restauran desde Historial; cerrar la aplicacion no los restaura. Esta publicacion requiere que pasen las pruebas de logica, interfaz y las comprobaciones nativas de Windows del workflow. No demuestra un aumento de FPS en tu equipo."
+              --notes "Descomprime la carpeta completa y abre NEXO.exe. Version 0.3.0: nuevo hub y logos locales, perfiles GPU por juego, pestaña Laptop y compatibilidad exclusiva con Windows 10/11. Sin firma digital. Los ajustes de energia se restauran desde Historial; cerrar la aplicacion no los restaura. Esta publicacion requiere que pasen las pruebas de logica, interfaz y las comprobaciones nativas de Windows del workflow. No demuestra un aumento de FPS en tu equipo."
           fi

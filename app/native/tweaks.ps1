@@ -26,8 +26,10 @@ function Get-RegistrySnapshot($spec) {
   } finally { if ($key) { $key.Dispose() } }
 }
 function Get-TweakInspection($definition) {
-  $build = [Environment]::OSVersion.Version.Build
-  $reason = $null
+  $platform=Get-PlatformInfo
+  $build=$platform.build
+  $reason=if($platform.supported){$null}else{$platform.reason}
+  if($definition.windows -and $platform.family -notin @($definition.windows)){$reason='Este ajuste corresponde a otra version de Windows.'}
   if ($build -lt $definition.minBuild -or ($definition.maxBuild -and $build -gt $definition.maxBuild)) { $reason = 'No disponible en esta compilacion de Windows.' }
   if ($definition.policy) {
     foreach ($hive in @([Microsoft.Win32.Registry]::CurrentUser,[Microsoft.Win32.Registry]::LocalMachine)) {
@@ -48,6 +50,11 @@ function Get-TweakInspection($definition) {
           if (-not [int]::TryParse([string]$original.value, [ref]$flags) -or $flags -lt 0) { throw 'Las opciones de accesibilidad existentes no son compatibles.' }
           $desired = ($flags -band (-bnot [int]$spec.clearBits)).ToString([Globalization.CultureInfo]::InvariantCulture)
         }
+        if ($spec.mergeToken) {
+          if($original.exists -and $original.kind -ne 'String'){throw 'Preferencia grafica no compatible.'}
+          $tokens=@(([string]$original.value).Split(';') | Where-Object { $_ -and $_ -notmatch ('^\s*'+[regex]::Escape([string]$spec.mergeToken.name)+'\s*=') })
+          $desired=(($tokens+([string]$spec.mergeToken.name+'='+[string]$spec.mergeToken.value)) -join ';')+';'
+        }
         $before += $original
         $after += [ordered]@{ path=[string]$spec.path; name=[string]$spec.name; keyExisted=$true; exists=$true; kind=[string]$spec.kind; value=$desired }
         if (-not $original.exists -or $original.kind -ne $spec.kind -or [string]$original.value -cne [string]$desired) { $configured = $false }
@@ -58,10 +65,14 @@ function Get-TweakInspection($definition) {
 }
 function Write-Tweak($data) {
   $definition = Get-Definition ([string]$data.tweakId)
-  $values = @($data.value)
-  if ($values.Count -ne @($definition.values).Count) { throw 'Copia de restauracion no valida.' }
+  Write-RegistryValues @($data.value) @($definition.values)
+}
+function Write-RegistryValues($entries,$specifications) {
+  $values=@($entries)
+  $specs=@($specifications)
+  if ($values.Count -ne $specs.Count) { throw 'Copia de restauracion no valida.' }
   for ($i=0; $i -lt $values.Count; $i++) {
-    $entry = $values[$i]; $spec = $definition.values[$i]
+    $entry = $values[$i]; $spec = $specs[$i]
     if ($entry.path -cne $spec.path -or $entry.name -cne $spec.name) { throw 'La copia no corresponde al ajuste permitido.' }
     if ($entry.exists -and $entry.kind -notin @('DWord','String')) { throw 'Tipo de registro no permitido.' }
   }

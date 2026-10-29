@@ -2,7 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../app/ui');
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg':'image/svg+xml', '.png':'image/png' };
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if(url.pathname==='/catalog.json'){res.writeHead(200,{'Content-Type':'application/json'}).end(fs.readFileSync(path.join(root,'../shared/tweaks.json')));return;}

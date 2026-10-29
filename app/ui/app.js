@@ -1,6 +1,9 @@
 import { demoAPI, demoGames } from './demo.js';
 import { TweakLibrary } from './tweak-library.js';
 import { LiveMetrics } from './live.js';
+import { renderHub } from './hub.js';
+import { gameArtwork } from './game-art.js';
+import { laptopPage } from './laptop.js';
 import { recommendations } from './recommendations.js';
 const icons = {
   home:'M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',
@@ -28,37 +31,24 @@ const icons = {
 const icon = (name, cls='')=>`<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${icons[name]||icons.info}"/></svg>`;
 const escape = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let api = window.nexo || demoAPI;
+let laptopReview=null;
 let state, snapshot, route = location.hash.slice(1) || 'dashboard', busy = false, candidates = [], search = '', sourceFilter = 'Todos', telemetryError = '';
-const routes = [['dashboard','Resumen','home'],['games','Mis juegos','games'],['optimize','Optimización','tune'],['memory','Memoria RAM','memory'],['benchmark','Comparar FPS','chart'],['history','Historial','history']];
+const routes = [['dashboard','Resumen','home'],['games','Mis juegos','games'],['optimize','Optimización','tune'],['laptop','Laptop','battery'],['memory','Memoria RAM','memory'],['benchmark','Comparar FPS','chart'],['history','Historial','history']];
 const $ = selector => document.querySelector(selector);
 const live=new LiveMetrics();
-const tweaks=new TweakLibrary({api:()=>state.demo?demoAPI:api,demo:()=>state.demo,state:()=>state,setState:value=>state=value,icon,escape,button,openDialog,perform,toast});
+const tweaks=new TweakLibrary({api:()=>state.demo?demoAPI:api,demo:()=>state.demo,state:()=>state,snapshot:()=>snapshot,render:()=>render(),setState:value=>state=value,icon,escape,button,openDialog,perform,toast});
 function toast(message, error=false) { const t=$('#toast'); t.textContent=message; t.className=error?'error':''; t.hidden=false; clearTimeout(toast.timer); toast.timer=setTimeout(()=>t.hidden=true,7000); }
 function header(eyebrow,title,subtitle,button='') { return `<div class="page-heading"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${subtitle}</p></div>${button}</div>`; }
 function button(text,action,kind='secondary',ico='arrow',extra='') { return `<button class="button ${kind}" data-action="${action}" ${extra}>${icon(ico)}${text}</button>`; }
 function empty(title,text,ico='games') { return `<div class="empty">${icon(ico)}<h3>${title}</h3><p>${text}</p></div>`; }
-function artKey(game) { const name=game.name.toLowerCase(); return game.art || (name.includes('counter')?'cs2':name.includes('valorant')?'valorant':name.includes('fortnite')?'fortnite':name.includes('apex')?'apex':'generic'); }
-function artwork(game) {
-  const key=artKey(game), titles={cs2:'COUNTER<br><span>STRIKE 2</span>',valorant:'V<span class="art-sub">VALORANT</span>',fortnite:'FORT<span>NITE</span>',apex:'APEX<span class="art-sub">LEGENDS</span>',generic:escape(game.name.slice(0,20))};
-  return `<div class="game-art art-${key}" aria-hidden="true"><div class="art-grid"></div><div class="art-orbit"></div><span class="art-title">${titles[key]}</span><span class="art-corner">N / ${key==='generic'?'PLAY':key.toUpperCase()}</span></div>`;
-}
+function artwork(game){return gameArtwork(game,escape);}
 function gameCard(game) { const p=state.profiles[game.id]; return `<button class="game-card" data-action="game" data-id="${escape(game.id)}">${artwork(game)}<div class="game-info"><div class="game-name">${escape(game.name)}${icon('arrow')}</div><div class="game-meta"><span>${escape(game.source)}</span><span class="profile-label ${p?'configured':''}">${p?'Perfil configurado':'Sin ajustes'}</span></div></div></button>`; }
 function telemetryCard(label,ico,value,unit,sub,kind) {
   const percent=Number.isFinite(value)?Math.max(0,Math.min(100,value)):0;
   return `<section class="panel metric ${kind}" data-metric="${ico}"><div class="metric-label">${icon(ico)}${label}<span class="live-dot"></span></div><div class="metric-data"><div><strong class="metric-value">${Number.isFinite(value)?Math.round(value):'—'}</strong><span>${unit}</span><p class="metric-caption">${sub}</p></div><svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40"/><circle class="ring-value ring-p${Math.round(percent/5)*5}" cx="50" cy="50" r="40"/><path d="M36 51h8l5-12 7 23 5-11h5"/></svg></div></section>`;
 }
-function dashboard() {
-  const active=state.history.filter(h=>['pending','applied','restore-failed'].includes(h.status)).length;
-  const cpu=snapshot?.cpu || 'Detectando procesador…', gpu=snapshot?.gpu?.map(g=>g.name).join(' · ') || 'Detectando gráficos…';
-  const memory=snapshot?.memory;
-  return `${header('EL CONTROL VUELVE A TI','Más juego. Menos límites.','Conoce tu equipo. Ajusta lo necesario. Comprueba la diferencia.',button('Escanear equipo','refresh','secondary','scan'))}
-    <section class="hero panel"><div class="hero-content"><span class="tag">${icon('bolt')} TU EQUIPO, A SU RITMO</span><h2>Todo listo para<br>tu próxima partida<span>.</span></h2><p>Un buen rendimiento empieza con decisiones informadas.<br>Sin recetas mágicas. Sin tocar lo que ya funciona.</p><div class="hero-actions">${button('Preparar mi juego','goto-games','primary','games')}${button('Ver mi hardware','hardware','text','arrow')}</div><div class="hero-trust">${icon('shield')} Cambios registrados y reversibles</div></div><div class="hero-visual" aria-hidden="true"><div class="visual-orbit orbit-one"></div><div class="visual-orbit orbit-two"></div><div class="chip"><div class="chip-line"></div><span>N</span><small>NEXO ENGINE</small></div><div class="chip-caption"><span class="status-dot"></span> ${state.demo?'VISTA PREVIA':'DIAGNÓSTICO LOCAL'}</div></div></section>
-    <div class="hardware-strip"><span>${icon('cpu')} ${escape(cpu)}</span><span>${icon('gpu')} ${escape(gpu)}</span><span>${icon('memory')} ${memory?memory.totalGB+' GB RAM':'— GB RAM'}</span><span class="hardware-link" data-action="hardware" role="button" tabindex="0">Ver detalles ${icon('arrow')}</span></div>
-    <div class="section-title"><h2>Tu sistema, de un vistazo <span class="small-tag stream-status" data-live="status">${state.demo?'EJEMPLO':telemetryError?'SIN ACTUALIZAR':'EN VIVO'}</span></h2><span>${state.demo?'Datos ilustrativos':telemetryError?'No se pudo actualizar':snapshot?'Muestreo continuo · 1 s':'Leyendo Windows…'}</span></div>
-    ${telemetryError?`<div class="notice warning">${escape(telemetryError)}</div>`:''}
-    <div class="metrics-grid">${telemetryCard('PROCESADOR','cpu',snapshot?.cpuPercent,'%',snapshot?`${snapshot.cores} núcleos · ${snapshot.threads} hilos`:'Esperando lectura','green')}${telemetryCard('MEMORIA RAM','memory',memory?.usedPercent,'%',memory?`${(memory.totalGB-memory.availableGB).toFixed(1)} de ${memory.totalGB} GB en uso`:'Esperando lectura','amber')}${telemetryCard('TARJETA GRÁFICA','gpu',null,'', 'Uso GPU no disponible · Sin estimaciones','blue')}</div>
-    <div class="lower-grid"><section><div class="section-title"><h2>Tu próxima partida <span class="count">${state.games.length}</span></h2><button class="text-button" data-route="games">Ver biblioteca ${icon('arrow')}</button></div><div class="game-grid compact">${state.games.slice(0,3).map(gameCard).join('')||empty('Tu biblioteca empieza aquí','Escanea tus launchers o añade un juego manualmente.')}</div></section><section class="panel session-card"><div class="session-icon">${icon('shield')}</div><span class="eyebrow">TÚ TIENES LA ÚLTIMA PALABRA</span><h2>Rendimiento<br>con tranquilidad.</h2><p>Ni servicios desactivados, ni cambios ocultos. Cada ajuste tiene un motivo y una forma de volver atrás.</p><div class="session-stat"><strong>${active.toString().padStart(2,'0')}</strong><span>cambios pendientes<br>de restaurar</span></div>${button('Ver historial','goto-history','secondary','history')}</section></div>`;
-}
+function dashboard(){return renderHub({state,snapshot,icon,escape,button,gameCard,telemetryCard,empty});}
+
 function gamesPage() {
   const filtered=state.games.filter(g=>(sourceFilter==='Todos'||g.source===sourceFilter)&&g.name.toLowerCase().includes(search.toLowerCase()));
   return `${header('BIBLIOTECA','Tus juegos. Tus reglas.','Perfiles individuales, sin modificar los archivos del juego.',button('Buscar juegos','scan','primary','scan'))}<div class="library-toolbar"><div class="tabs">${['Todos',...new Set(state.games.map(g=>g.source))].map(s=>`<button class="filter ${sourceFilter===s?'active':''}" data-filter="${escape(s)}">${escape(s)}</button>`).join('')}</div><div class="search-add"><input id="game-search" type="search" placeholder="Buscar un juego…" aria-label="Buscar un juego" value="${escape(search)}">${button('Añadir juego','add','secondary','plus')}</div></div><div class="game-grid library" id="game-list">${filtered.map(gameCard).join('')||empty('Aún no hay juegos aquí','Busca instalaciones de Steam, Epic y Riot o añade su ejecutable.')}</div><div class="notice">${icon('info')} El escaneo busca instalaciones locales, también en bibliotecas de Steam en discos externos conectados. No busca en todo tu disco. Xbox y otros launchers: añade el .exe manualmente.</div>`;
@@ -90,29 +80,34 @@ function render() {
   document.querySelector('[data-route="windows"]').classList.toggle('active',route==='windows');
   $('#breadcrumb').textContent=routes.find(r=>r[0]===route)?.[1]||'Windows';
   $('#demo-banner').hidden=!state.demo;
+  $('#platform-banner').hidden=snapshot?.platform?.supported!==false;$('#platform-banner').textContent=snapshot?.platform?.reason||'Solo Windows 10 y Windows 11: los cambios están bloqueados en este sistema.';
   $('#connection').innerHTML=`<span class="status-dot ${telemetryError?'warn':''}"></span>${state.demo?'Modo demostración':telemetryError?'Lectura no disponible':'Windows · Local'}`;
-  const pages={dashboard,games:gamesPage,optimize:optimizePage,memory:memoryPage,benchmark:benchmarkPage,history:historyPage,windows:windowsPage};
+  const pages={dashboard,games:gamesPage,optimize:optimizePage,memory:memoryPage,benchmark:benchmarkPage,history:historyPage,windows:windowsPage,laptop:()=>laptopPage({snapshot,icon,button,escape})};
   $('#main').innerHTML=(pages[route]||dashboard)();
   document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=icon(el.dataset.icon));
-  document.querySelectorAll('[data-action]').forEach(b=>{b.disabled=busy;});
+  document.querySelectorAll('[data-action]').forEach(b=>{b.disabled=busy||b.hasAttribute('disabled');});
   if(route==='optimize')tweaks.paint();
   live.paint(snapshot);
+  $('#main').classList.remove('route-enter');requestAnimationFrame(()=>$('#main').classList.add('route-enter'));
 }
 function openDialog(html) { $('#dialog-content').innerHTML=`<button class="dialog-close" data-action="close" aria-label="Cerrar">${icon('close')}</button>${html}`; $('#dialog').showModal(); }
 function gameDialog(id) {
-  const game=state.games.find(g=>g.id===id),p=state.profiles[id]||{performance:true,priority:false};
-  openDialog(`<span class="eyebrow">PERFIL INDIVIDUAL · ${escape(game.source)}</span><h2>${escape(game.name)}</h2><p class="muted">Abre el juego desde su launcher oficial antes de aplicar prioridad. No se modifican sus archivos, gráficos ni sistemas de seguridad.</p><label class="setting-row"><span><strong>Plan Alto rendimiento</strong><small>Si existe. Más consumo y calor; conecta el cargador.</small></span><input type="checkbox" id="profile-performance" ${p.performance?'checked':''}></label><label class="setting-row"><span><strong>Prioridad superior a lo normal</strong><small>Opcional. Puede no aportar FPS y el juego puede rechazarla.</small></span><input type="checkbox" id="profile-priority" ${p.priority?'checked':''}></label><div class="notice">${icon('info')} El plan de energía no se restaura al cerrar NEXO. Al terminar, ve a Historial → Restaurar.</div><section class="game-recommendations"><h3>Ajustes específicos dentro del juego</h3><p class="muted">Sugerencias manuales; NEXO no las aplica ni modifica archivos.</p>${recommendations(game.name).map(([title,text])=>`<div><strong>${escape(title)}</strong><p>${escape(text)}</p></div>`).join('')}</section><div class="dialog-actions">${button('Guardar perfil','save-profile','secondary','check',`data-id="${escape(id)}"`)}${button('Guardar y aplicar','apply-profile','primary','bolt',`data-id="${escape(id)}"`)}</div>${game.source==='Steam'||game.exe?`<div class="launch-row">${button('Iniciar juego','launch','text','play',`data-id="${escape(id)}"`)}</div>`:'<p class="muted">Inicia este juego desde su launcher oficial. Su instalación ya está disponible para aplicar el perfil.</p>'}`);
+  const game=state.games.find(g=>g.id===id),p=state.profiles[id]||{performance:!snapshot?.device?.isLaptop,priority:false,gpu:false,legacyFullscreen:false};
+  const laptop=snapshot?.device?.isLaptop;
+  const setting=(id,title,detail,checked,disabled=false)=>`<label class="setting-row"><span><strong>${title}</strong><small>${detail}</small></span><input type="checkbox" id="${id}" ${checked?'checked':''} ${disabled?'disabled':''}></label>`;
+  openDialog(`<span class="eyebrow">PERFIL INDIVIDUAL · ${escape(game.source)}</span><h2>${escape(game.name)}</h2><p class="muted">Ajustes de Windows por juego. Sin cambiar archivos ni sistemas de seguridad. Reinicia el juego para aplicar preferencias gráficas.</p>${laptop?`<div class="notice">${icon('battery')} La energía de tu portátil se gestiona en la pestaña Laptop.</div>`:setting('profile-performance','Plan Alto rendimiento','Si el fabricante ya lo ofrece; puede aumentar consumo y temperatura.',p.performance)}${setting('profile-priority','Prioridad superior a lo normal','Abre el juego antes de aplicar. Puede no aportar FPS y el juego puede rechazarla.',p.priority)}${setting('profile-gpu','Preferir GPU de alto rendimiento','Preferencia de Windows por ejecutable. Puede ayudar si se estaba usando otra GPU. No hace overclock.',p.gpu&&snapshot?.platform?.build>=17134,!game.exe||!(snapshot?.platform?.build>=17134))}${setting('profile-fullscreen','Compatibilidad de pantalla completa clásica','Prueba opcional para juegos con problemas de presentación. Puede empeorar el rendimiento; compara y restaura si no ayuda.',p.legacyFullscreen&&snapshot?.platform?.build>=15063,!game.exe||!(snapshot?.platform?.build>=15063))}<div class="game-executable"><span>${game.exe?'Ejecutable asignado: '+escape(game.exe):'Asigna el ejecutable real del juego para habilitar las preferencias gráficas.'}</span>${button('Elegir ejecutable','choose-exe','secondary','plus',`data-id="${escape(id)}"`)}</div><div class="notice">${icon('history')} Los ajustes permanecen al cerrar NEXO. Recupera tus valores originales desde Historial → Restaurar.</div><section class="game-recommendations"><h3>Ajustes específicos dentro del juego</h3><p class="muted">Sugerencias manuales; NEXO no las aplica ni modifica archivos.</p>${recommendations(game.name).map(([title,text])=>`<div><strong>${escape(title)}</strong><p>${escape(text)}</p></div>`).join('')}</section><div class="dialog-actions">${button('Guardar perfil','save-profile','secondary','check',`data-id="${escape(id)}"`)}${button('Guardar y aplicar','apply-profile','primary','bolt',`data-id="${escape(id)}" ${snapshot?.platform?.supported===false?'disabled':''}`)}</div>${game.source==='Steam'||game.exe?`<div class="launch-row">${button('Iniciar juego','launch','text','play',`data-id="${escape(id)}"`)}</div>`:'<p class="muted">Inicia este juego desde su launcher oficial.</p>'}`);
 }
+
 async function refreshTelemetry() {
   try { snapshot=state.demo?await demoAPI.snapshot():await api.snapshot(); telemetryError=''; }
   catch(e){telemetryError=e.message;}
 }
 async function perform(fn,message) {
   if(busy)return;
-  busy=true;document.body.classList.add('busy'); document.querySelectorAll('[data-action]').forEach(b=>b.disabled=true);
+  busy=true;document.body.classList.add('busy'); document.querySelectorAll('[data-action]').forEach(b=>{if(!b.disabled)b.dataset.busyDisabled='1';b.disabled=true;});
   try { await fn(); if(message)toast(message); }
   catch(e){toast(e.message,true);if(!state.demo){try{state=await api.state();}catch{}}}
-  finally { busy=false;document.body.classList.remove('busy');render(); document.querySelectorAll('#dialog [data-action]').forEach(b=>b.disabled=false); }
+  finally { busy=false;document.body.classList.remove('busy');render(); document.querySelectorAll('#dialog [data-busy-disabled]').forEach(b=>{b.disabled=false;delete b.dataset.busyDisabled;}); }
 }
 function hardwareDialog() { openDialog(`<span class="eyebrow">${state.demo?'EQUIPO DE EJEMPLO':'DETECTADO EN TU PC'}</span><h2>Tu hardware</h2><div class="spec-list"><div>${icon('cpu')}<span>Procesador<strong>${escape(snapshot?.cpu||'No disponible')}</strong></span></div><div>${icon('gpu')}<span>Gráficos<strong>${escape(snapshot?.gpu?.map(g=>g.name).join(' · ')||'No disponible')}</strong></span></div><div>${icon('memory')}<span>Memoria<strong>${snapshot?.memory?.totalGB||'—'} GB RAM</strong></span></div><div>${icon('settings')}<span>Sistema<strong>${escape(snapshot?.os||'No disponible')}</strong></span></div>${(snapshot?.disks||[]).map(d=>`<div>${icon('disk')}<span>${escape(d.name)} ${escape(d.label)}<strong>${d.freeGB} GB libres de ${d.totalGB} GB</strong></span></div>`).join('')}</div><p class="muted">Capacidad de volúmenes accesibles, en GiB redondeados. Los discos externos deben estar conectados al escanear.</p>`); }
 document.addEventListener('click',async event=>{
@@ -123,13 +118,20 @@ document.addEventListener('click',async event=>{
   if(await tweaks.handle(action,id,el))return;
   if(action.startsWith('goto-')){location.hash=action.slice(5);return;}
   if(action==='close'){$('#dialog').close();return;}
+  if(action==='choose-exe')return perform(async()=>{state=await api.chooseGameExecutable(id);$('#dialog').close();gameDialog(id);},'Ejecutable del juego actualizado.');
+  if(action==='laptop-review')return perform(async()=>{
+    const review=await api.reviewLaptopPlan(el.dataset.mode);
+    laptopReview=review.id;
+    openDialog(`<span class="eyebrow">LAPTOP · REVISIÓN DE ENERGÍA</span><h2>${{performance:'Alto rendimiento',balanced:'Equilibrado',saver:'Ahorro de energía'}[review.mode]||'Cambiar el plan de esta sesión'}</h2><p>Se conservará el plan original para restaurarlo desde Historial. La alimentación y el plan activo se comprueban otra vez antes de aplicar.</p><div class="notice warning">Alto rendimiento requiere el cargador y puede aumentar ruido, consumo y temperatura. Ahorro de energía puede reducir los FPS.</div><div class="dialog-actions">${button('Cancelar','close','secondary','close')}${button('Aplicar el plan revisado','laptop-apply','primary','check')}</div>`);
+  });
+  if(action==='laptop-apply')return perform(async()=>{state=await api.applyLaptopPlan(laptopReview);laptopReview=null;$('#dialog').close();await refreshTelemetry();},'Plan registrado. Puedes restaurarlo desde Historial.');
   if(action==='game'){gameDialog(id);return;}
   if(action==='hardware'){hardwareDialog();return;}
   if(action==='refresh')return perform(async()=>{await refreshTelemetry(); if(telemetryError)throw new Error(telemetryError);},'Lectura del equipo actualizada.');
   if(action==='scan')return perform(async()=>{state=await api.scan();},'Biblioteca actualizada.');
   if(action==='add')return perform(async()=>{state=await api.addGame();},'Biblioteca actualizada.');
   if(action==='save-profile'||action==='apply-profile'){
-    const profile={performance:$('#profile-performance').checked,priority:$('#profile-priority').checked};
+    const profile={performance:$('#profile-performance')?.checked===true,priority:$('#profile-priority').checked,gpu:$('#profile-gpu')?.checked===true,legacyFullscreen:$('#profile-fullscreen')?.checked===true};
     return perform(async()=>{state=await api.profile(id,profile); if(action==='apply-profile')state=await api.apply(id);$('#dialog').close();},action==='apply-profile'?'Operación completada. Revisa el historial y compara una captura.':'Perfil guardado.');
   }
   if(action==='launch')return perform(()=>api.launch(id),'Inicio solicitado al launcher o ejecutable.');

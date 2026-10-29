@@ -1,6 +1,6 @@
 {
   "name": "nexo-pc",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Asistente de rendimiento para juegos en Windows, con cambios reversibles",
   "private": true,
   "main": "app/main.cjs",

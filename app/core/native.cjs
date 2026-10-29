@@ -2,13 +2,14 @@ const { spawn } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 const { nativeScript, powershell } = require('./telemetry.cjs');
-const ALLOWED = new Set(['snapshot', 'games', 'powerPlans', 'powerSet', 'priorityGet', 'prioritySet', 'animationsGet', 'animationsSet', 'memoryCandidates', 'memoryTrim', 'tweakInspect', 'tweakWrite']);
+const ALLOWED = new Set(['snapshot', 'games', 'powerPlans', 'powerSet', 'priorityGet', 'prioritySet', 'animationsGet', 'animationsSet', 'memoryCandidates', 'memoryTrim', 'tweakInspect', 'tweakWrite', 'platform', 'gamePreferences', 'gamePreferenceWrite']);
 class Native {
+  constructor(scriptProvider=nativeScript){this.scriptProvider=scriptProvider;}
   async call(action, payload = {}) {
     if (!ALLOWED.has(action)) throw new Error('Operación nativa no permitida.');
     if (process.platform !== 'win32') throw new Error('Esta operación requiere Windows 10/11.');
     const executable = powershell();
-    const script = nativeScript();
+    const script = this.scriptProvider();
     return new Promise((resolve, reject) => {
       const encoded = Buffer.from(JSON.stringify(payload)).toString('base64');
       // Run bundled commands via stdin, including from ASAR. Never alter execution policy.

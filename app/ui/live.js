@@ -5,12 +5,15 @@ export class LiveMetrics {
     const sample=message.sample;if(!sample?.memory||!Number.isFinite(sample.memory.availableGB))return;
     Object.assign(snapshot,{memory:sample.memory,capturedAt:sample.capturedAt});
     if(Number.isFinite(sample.cpuPercent))snapshot.cpuPercent=sample.cpuPercent;
+    if(sample.power&&snapshot.device){snapshot.device.acConnected=sample.power.acConnected;snapshot.device.batteryPercent=sample.power.batteryPercent;}
     this.lastReceived=Date.now();this.error='';this.history.push(sample.memory.usedPercent);if(this.history.length>60)this.history.shift();this.paint(snapshot);
   }
   paint(snapshot){
     if(!snapshot?.memory)return;
     const m=snapshot.memory,used=Number.isFinite(m.totalBytes)&&Number.isFinite(m.availableBytes)?(m.totalBytes-m.availableBytes)/1073741824:m.totalGB-m.availableGB;
     const set=(selector,value)=>document.querySelectorAll(selector).forEach(e=>e.textContent=value);
+    set('[data-live="battery-percent"]',snapshot.device?.isLaptop&&Number.isFinite(snapshot.device.batteryPercent)?snapshot.device.batteryPercent+' %':'—');
+    set('[data-live="ac-status"]',!snapshot.device?.isLaptop?'No hay una laptop detectada':snapshot.device.acConnected===true?'Cargador conectado':snapshot.device.acConnected===false?'Usando batería':'Alimentación sin confirmar');
     set('[data-live="ram-free"]',m.availableGB.toFixed(2));set('[data-live="ram-used"]',used.toFixed(2));set('[data-live="ram-total"]',m.totalGB.toFixed(1));set('[data-live="ram-percent"]',Math.round(m.usedPercent));
     const age=this.lastReceived?Date.now()-this.lastReceived:Date.now()-this.startedAt,stale=age>5000||!!this.error;
     set('[data-live="time"]',this.lastReceived?new Date(this.lastReceived).toLocaleTimeString('es-MX'):'Esperando primera muestra…');
