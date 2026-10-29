@@ -2,14 +2,15 @@
 $NexoDefinitions = $null
 function Get-Definitions {
   if (-not $script:NexoDefinitions) {
-    $script:NexoDefinitions = @([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('__NEXO_CATALOG__')) | ConvertFrom-Json)
+    $decoded = ConvertFrom-Json -InputObject ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('__NEXO_CATALOG__')))
+    $script:NexoDefinitions = @()
+    foreach ($item in $decoded) { $script:NexoDefinitions += $item }
   }
-  return $script:NexoDefinitions
+  foreach ($item in $script:NexoDefinitions) { Write-Output $item }
 }
 function Get-Definition([string]$id) {
-  $definition = Get-Definitions | Where-Object { $_.id -ceq $id } | Select-Object -First 1
-  if (-not $definition) { throw 'Ajuste no permitido.' }
-  return $definition
+  foreach ($definition in (Get-Definitions)) { if ($definition.id -ceq $id) { return $definition } }
+  throw 'Ajuste no permitido.'
 }
 function Get-RegistrySnapshot($spec) {
   $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey([string]$spec.path)
