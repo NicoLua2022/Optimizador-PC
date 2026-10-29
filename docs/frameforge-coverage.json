@@ -1,0 +1,583 @@
+{
+  "reference": "FrameForge-v1.0.zip, supplied by the user for feature comparison; never executed",
+  "sha256": "f8b855df3aabe29c348ef6869cdbbfc7f2ad5a73459ae065272add3e3aecf922",
+  "features": [
+    {
+      "referenceId": "pwr_plan",
+      "referenceTitle": "FrameForge Ultimate Performance Plan",
+      "nexo": [
+        "dedicated-plan"
+      ]
+    },
+    {
+      "referenceId": "pwr_coreparking",
+      "referenceTitle": "Disable CPU Core Parking",
+      "nexo": [
+        "core-parking"
+      ]
+    },
+    {
+      "referenceId": "pwr_minstate",
+      "referenceTitle": "Minimum Processor State 100%",
+      "nexo": [
+        "cpu-minimum"
+      ]
+    },
+    {
+      "referenceId": "pwr_boost",
+      "referenceTitle": "Aggressive Turbo Boost",
+      "nexo": [
+        "cpu-turbo"
+      ]
+    },
+    {
+      "referenceId": "pwr_usb",
+      "referenceTitle": "Disable USB Selective Suspend",
+      "nexo": [
+        "usb-suspend"
+      ]
+    },
+    {
+      "referenceId": "pwr_aspm",
+      "referenceTitle": "Disable PCIe Link State Power Saving",
+      "nexo": [
+        "pcie-saving"
+      ]
+    },
+    {
+      "referenceId": "pwr_diskidle",
+      "referenceTitle": "Never Spin Down Hard Drives",
+      "nexo": [
+        "disk-idle"
+      ]
+    },
+    {
+      "referenceId": "pwr_hibernate",
+      "referenceTitle": "Disable Hibernation & Fast Startup",
+      "nexo": [
+        "hibernate"
+      ]
+    },
+    {
+      "referenceId": "fps_powerthrottle",
+      "referenceTitle": "Disable Windows Power Throttling",
+      "nexo": [
+        "power-throttling"
+      ]
+    },
+    {
+      "referenceId": "fps_gamemode",
+      "referenceTitle": "Enable Windows Game Mode",
+      "nexo": [
+        "game-mode"
+      ]
+    },
+    {
+      "referenceId": "fps_gamedvr",
+      "referenceTitle": "Disable Game DVR Background Recording",
+      "nexo": [
+        "game-capture",
+        "background-capture"
+      ]
+    },
+    {
+      "referenceId": "fps_gamebar",
+      "referenceTitle": "Disable Xbox Game Bar Overlay",
+      "nexo": [
+        "controller-gamebar",
+        "gamebar-startup"
+      ]
+    },
+    {
+      "referenceId": "fps_hpet",
+      "referenceTitle": "Ensure HPET Is Not Forced",
+      "nexo": [
+        "boot-hpet"
+      ]
+    },
+    {
+      "referenceId": "fps_dyntick",
+      "referenceTitle": "Disable Dynamic Tick",
+      "nexo": [
+        "boot-dynamic-tick"
+      ]
+    },
+    {
+      "referenceId": "fps_fso",
+      "referenceTitle": "Disable Fullscreen Optimizations (Global)",
+      "nexo": [
+        "fullscreen-global"
+      ]
+    },
+    {
+      "referenceId": "fps_mouse",
+      "referenceTitle": "Disable Mouse Acceleration",
+      "nexo": [
+        "mouse-acceleration"
+      ]
+    },
+    {
+      "referenceId": "fps_keyboard",
+      "referenceTitle": "Fastest Keyboard Repeat Response",
+      "nexo": [
+        "keyboard-repeat"
+      ]
+    },
+    {
+      "referenceId": "fps_bgapps",
+      "referenceTitle": "Stop Background Apps",
+      "nexo": [
+        "background-apps"
+      ]
+    },
+    {
+      "referenceId": "fps_edge",
+      "referenceTitle": "Stop Edge Startup Boost & Background Mode",
+      "nexo": [
+        "edge-background"
+      ]
+    },
+    {
+      "referenceId": "fps_noreboot",
+      "referenceTitle": "No Forced Update Restarts While Signed In",
+      "nexo": [
+        "update-restart"
+      ]
+    },
+    {
+      "referenceId": "gpu_hags",
+      "referenceTitle": "Hardware-Accelerated GPU Scheduling",
+      "nexo": [
+        "gpu-hags"
+      ]
+    },
+    {
+      "referenceId": "gpu_mpo",
+      "referenceTitle": "Disable Multiplane Overlay (MPO)",
+      "nexo": [
+        "gpu-mpo"
+      ]
+    },
+    {
+      "referenceId": "gpu_winopt",
+      "referenceTitle": "Optimizations for Windowed Games",
+      "nexo": [
+        "windowed-optimizations"
+      ]
+    },
+    {
+      "referenceId": "gpu_msi",
+      "referenceTitle": "Enable MSI Mode for GT 1030",
+      "nexo": [
+        "gpu-msi"
+      ]
+    },
+    {
+      "referenceId": "gpu_transparency",
+      "referenceTitle": "Disable Transparency Effects",
+      "nexo": [
+        "transparency"
+      ]
+    },
+    {
+      "referenceId": "gpu_visualfx",
+      "referenceTitle": "Visual Effects: Best Performance",
+      "nexo": [
+        "visual-performance",
+        "taskbar-animations",
+        "window-animations"
+      ]
+    },
+    {
+      "referenceId": "gpu_nvtelemetry",
+      "referenceTitle": "Disable NVIDIA Telemetry",
+      "nexo": [
+        "nvidia-telemetry"
+      ]
+    },
+    {
+      "referenceId": "gpu_wudrivers",
+      "referenceTitle": "Stop Windows Update Replacing Drivers",
+      "nexo": [
+        "gpu-driver-updates"
+      ]
+    },
+    {
+      "referenceId": "reg_mmcss_games",
+      "referenceTitle": "Prioritize Games in the Multimedia Scheduler",
+      "nexo": [
+        "mmcss-games"
+      ]
+    },
+    {
+      "referenceId": "reg_sysresp",
+      "referenceTitle": "System Responsiveness for Gaming",
+      "nexo": [
+        "system-responsiveness"
+      ]
+    },
+    {
+      "referenceId": "reg_priosep",
+      "referenceTitle": "Foreground Priority Boost (Win32PrioritySeparation)",
+      "nexo": [
+        "foreground-boost"
+      ]
+    },
+    {
+      "referenceId": "reg_timerres",
+      "referenceTitle": "Global Timer Resolution Requests",
+      "nexo": [
+        "global-timer"
+      ]
+    },
+    {
+      "referenceId": "reg_pagingexec",
+      "referenceTitle": "Keep Kernel & Drivers in RAM",
+      "nexo": [
+        "kernel-memory"
+      ]
+    },
+    {
+      "referenceId": "reg_svchost",
+      "referenceTitle": "Group Service Host Processes (32 GB)",
+      "nexo": [
+        "service-host-grouping"
+      ]
+    },
+    {
+      "referenceId": "reg_menudelay",
+      "referenceTitle": "Instant Menus",
+      "nexo": [
+        "menu-delay"
+      ]
+    },
+    {
+      "referenceId": "reg_startupdelay",
+      "referenceTitle": "Remove Startup App Delay",
+      "nexo": [
+        "startup-delay"
+      ]
+    },
+    {
+      "referenceId": "reg_shutdown",
+      "referenceTitle": "Faster Shutdown & Hung-App Detection",
+      "nexo": [
+        "shutdown-timeouts"
+      ]
+    },
+    {
+      "referenceId": "mem_compression",
+      "referenceTitle": "Disable Memory Compression",
+      "nexo": [
+        "memory-compression"
+      ]
+    },
+    {
+      "referenceId": "mem_sysmain",
+      "referenceTitle": "Disable SysMain (Superfetch)",
+      "nexo": [
+        "sysmain"
+      ]
+    },
+    {
+      "referenceId": "mem_search",
+      "referenceTitle": "Disable Search Indexing",
+      "nexo": [
+        "search-indexing"
+      ]
+    },
+    {
+      "referenceId": "sto_lastaccess",
+      "referenceTitle": "Disable NTFS Last-Access Timestamps",
+      "nexo": [
+        "ntfs-last-access"
+      ]
+    },
+    {
+      "referenceId": "sto_8dot3",
+      "referenceTitle": "Disable 8.3 Short File Names",
+      "nexo": [
+        "ntfs-short-names"
+      ]
+    },
+    {
+      "referenceId": "net_nagle",
+      "referenceTitle": "Disable Nagle's Algorithm",
+      "nexo": [
+        "tcp-nagle"
+      ]
+    },
+    {
+      "referenceId": "net_throttle",
+      "referenceTitle": "Disable Network Throttling",
+      "nexo": [
+        "network-throttling"
+      ]
+    },
+    {
+      "referenceId": "net_nicpower",
+      "referenceTitle": "Disable Network Adapter Power Saving",
+      "nexo": [
+        "adapter-power"
+      ]
+    },
+    {
+      "referenceId": "net_dosvc",
+      "referenceTitle": "Stop Peer-to-Peer Update Uploads",
+      "nexo": [
+        "delivery-upload"
+      ]
+    },
+    {
+      "referenceId": "net_dns",
+      "referenceTitle": "Use Cloudflare DNS (1.1.1.1)",
+      "nexo": [
+        "cloudflare-dns"
+      ]
+    },
+    {
+      "referenceId": "dbl_copilot",
+      "referenceTitle": "Disable Copilot",
+      "nexo": [
+        "copilot-policy"
+      ]
+    },
+    {
+      "referenceId": "dbl_widgets",
+      "referenceTitle": "Disable Widgets / News & Interests",
+      "nexo": [
+        "news-interests",
+        "widgets-policy"
+      ]
+    },
+    {
+      "referenceId": "dbl_bing",
+      "referenceTitle": "Remove Bing Web Results from Start Search",
+      "nexo": [
+        "bing-search"
+      ]
+    },
+    {
+      "referenceId": "dbl_autoinstall",
+      "referenceTitle": "Block Auto-Installed Sponsored Apps",
+      "nexo": [
+        "silent-apps",
+        "consumer-apps"
+      ]
+    },
+    {
+      "referenceId": "dbl_startads",
+      "referenceTitle": "Remove Start Menu Suggestions & Tips",
+      "nexo": [
+        "start-suggestions",
+        "windows-tips",
+        "welcome-tour"
+      ]
+    },
+    {
+      "referenceId": "dbl_settingsads",
+      "referenceTitle": "Remove Windows Settings Ads",
+      "nexo": [
+        "settings-ads"
+      ]
+    },
+    {
+      "referenceId": "dbl_lockads",
+      "referenceTitle": "Remove Lock Screen Ads & Fun Facts",
+      "nexo": [
+        "lockscreen-ads"
+      ]
+    },
+    {
+      "referenceId": "dbl_recall",
+      "referenceTitle": "Disable Recall Snapshots",
+      "nexo": [
+        "recall-policy"
+      ]
+    },
+    {
+      "referenceId": "dbl_onedrive",
+      "referenceTitle": "Prevent OneDrive from Running",
+      "nexo": [
+        "onedrive-policy"
+      ]
+    },
+    {
+      "referenceId": "dbl_apps_news",
+      "referenceTitle": "Remove News, Weather, Maps & Tips Apps",
+      "nexo": [
+        "tool:apps-news"
+      ]
+    },
+    {
+      "referenceId": "dbl_apps_office",
+      "referenceTitle": "Remove Office Hub, To Do, Clipchamp & Teams",
+      "nexo": [
+        "tool:apps-office"
+      ]
+    },
+    {
+      "referenceId": "dbl_apps_sponsored",
+      "referenceTitle": "Remove Sponsored Games & Apps",
+      "nexo": [
+        "tool:apps-sponsored"
+      ]
+    },
+    {
+      "referenceId": "dbl_apps_legacy",
+      "referenceTitle": "Remove Cortana, 3D Viewer & Mixed Reality",
+      "nexo": [
+        "tool:apps-legacy"
+      ]
+    },
+    {
+      "referenceId": "dbl_services",
+      "referenceTitle": "Disable Unused Services",
+      "nexo": [
+        "unused-services"
+      ]
+    },
+    {
+      "referenceId": "dbl_xbox",
+      "referenceTitle": "Disable Xbox Live Services",
+      "nexo": [
+        "xbox-services"
+      ]
+    },
+    {
+      "referenceId": "dbl_spooler",
+      "referenceTitle": "Disable Print Spooler",
+      "nexo": [
+        "print-spooler"
+      ]
+    },
+    {
+      "referenceId": "prv_telemetry",
+      "referenceTitle": "Minimize Windows Telemetry",
+      "nexo": [
+        "diagnostic-data"
+      ]
+    },
+    {
+      "referenceId": "prv_diagtrack",
+      "referenceTitle": "Disable Telemetry Services (DiagTrack)",
+      "nexo": [
+        "telemetry-services"
+      ]
+    },
+    {
+      "referenceId": "prv_tasks",
+      "referenceTitle": "Disable Telemetry Scheduled Tasks",
+      "nexo": [
+        "telemetry-tasks"
+      ]
+    },
+    {
+      "referenceId": "prv_adid",
+      "referenceTitle": "Disable Advertising ID",
+      "nexo": [
+        "advertising-id"
+      ]
+    },
+    {
+      "referenceId": "prv_tailored",
+      "referenceTitle": "Disable Tailored Experiences",
+      "nexo": [
+        "tailored-experiences"
+      ]
+    },
+    {
+      "referenceId": "prv_activity",
+      "referenceTitle": "Disable Activity History",
+      "nexo": [
+        "activity-history"
+      ]
+    },
+    {
+      "referenceId": "prv_wer",
+      "referenceTitle": "Disable Windows Error Reporting",
+      "nexo": [
+        "error-reporting"
+      ]
+    },
+    {
+      "referenceId": "prv_inking",
+      "referenceTitle": "Disable Typing & Inking Data Collection",
+      "nexo": [
+        "inking-data"
+      ]
+    },
+    {
+      "referenceId": "prv_remote",
+      "referenceTitle": "Disable Remote Assistance",
+      "nexo": [
+        "remote-assistance"
+      ]
+    },
+    {
+      "referenceId": "prv_location",
+      "referenceTitle": "Disable Location Services",
+      "nexo": [
+        "location-policy"
+      ]
+    },
+    {
+      "referenceId": "qol_stickykeys",
+      "referenceTitle": "Disable Sticky / Filter / Toggle Keys Pop-ups",
+      "nexo": [
+        "sticky-shortcut",
+        "filter-shortcut",
+        "toggle-shortcut"
+      ]
+    },
+    {
+      "referenceId": "qol_endtask",
+      "referenceTitle": "\"End Task\" in Taskbar Right-Click",
+      "nexo": [
+        "taskbar-end-task"
+      ]
+    },
+    {
+      "referenceId": "qol_classicmenu",
+      "referenceTitle": "Classic Right-Click Menu",
+      "nexo": [
+        "classic-context-menu"
+      ]
+    },
+    {
+      "referenceId": "qol_fileext",
+      "referenceTitle": "Show File Extensions",
+      "nexo": [
+        "file-extensions"
+      ]
+    },
+    {
+      "referenceId": "qol_thispc",
+      "referenceTitle": "Open File Explorer to This PC",
+      "nexo": [
+        "explorer-this-pc"
+      ]
+    },
+    {
+      "referenceId": "qol_verbose",
+      "referenceTitle": "Show Detailed Boot & Shutdown Status",
+      "nexo": [
+        "verbose-boot"
+      ]
+    },
+    {
+      "referenceId": "adv_vbs",
+      "referenceTitle": "Disable Memory Integrity (VBS / HVCI)",
+      "nexo": [
+        "security-vbs"
+      ]
+    },
+    {
+      "referenceId": "adv_spectre",
+      "referenceTitle": "Disable Spectre & Meltdown Mitigations",
+      "nexo": [
+        "security-mitigations"
+      ]
+    }
+  ]
+}

@@ -15,7 +15,7 @@ const fs=require('node:fs');const os=require('node:os');
   assert.equal(actual.supported,classifyWindows(actual).supported);
   console.log('Host real:',actual.caption,'build',actual.build,'supported=',actual.supported);
   if(!actual.supported){
-    const status=await detected.call('tweakInspect',{ids:require('../app/shared/tweaks.json').map(t=>t.id)});
+    const status=await detected.call('tweakInspect',{ids:require('../app/core/catalog.cjs').map(t=>t.id)});
     assert.ok(status.every(t=>!t.available));
     await assert.rejects(detected.call('tweakWrite',{tweakId:'advertising-id',value:[]}),/Windows 10|Windows 11/);
     console.log('Windows Server/otro SO: cambios bloqueados correctamente.');
@@ -26,8 +26,8 @@ const fs=require('node:fs');const os=require('node:os');
   const win10=new Native(()=>platformFixture(10));
   const win11=new Native(()=>platformFixture(11));
   for(const [client,label]of[[win10,'Windows 10'],[win11,'Windows 11']]){
-    const status=await client.call('tweakInspect',{ids:require('../app/shared/tweaks.json').map(t=>t.id)});
-    assert.equal(status.length,35);
+    const status=await client.call('tweakInspect',{ids:require('../app/core/catalog.cjs').map(t=>t.id)});
+    assert.equal(status.length,require('../app/core/catalog.cjs').length);
     assert.equal(status.find(t=>t.id==='windowed-optimizations').available,label==='Windows 11');
     assert.equal(status.find(t=>t.id==='background-apps').available,label==='Windows 10');
   }
@@ -37,9 +37,9 @@ const fs=require('node:fs');const os=require('node:os');
   const candidates=await native.call('memoryCandidates');assert.ok(Array.isArray(candidates));
   const plans=await native.call('powerPlans');assert.match(plans.active,/^[\da-f-]{36}$/);
   const animations=await native.call('animationsGet');assert.equal(typeof animations,'boolean');
-  const catalog=require('../app/shared/tweaks.json');
+  const catalog=require('../app/core/catalog.cjs');
   const statuses=await native.call('tweakInspect',{ids:catalog.map(t=>t.id)});
-  assert.equal(statuses.length,35);assert.ok(statuses.every(s=>typeof s.available==='boolean'));
+  assert.equal(statuses.length,catalog.length);assert.ok(statuses.every(s=>typeof s.available==='boolean'));
   const samples=[];let monitor;
   try {
     await new Promise((resolve,reject)=>{

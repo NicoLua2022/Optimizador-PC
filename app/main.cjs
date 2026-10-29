@@ -34,9 +34,33 @@ app.whenReady().then(() => {
     return choice.canceled?service.state():service.setGameExecutable(id,choice.filePaths[0]);
   });
   register('tweakCatalog',()=>service.tweakCatalog());
-  register('tweakStatus',()=>service.tweakStatus());
-  register('reviewTweaks',ids=>service.reviewTweaks(ids));
-  register('applyTweaks',id=>service.applyTweaks(id));
+  register('tweakStatus',scope=>service.tweakStatus(scope));
+  register('reviewTweaks',(ids,scope)=>service.reviewTweaks(ids,scope));
+  register('applyTweaks',(id,consent)=>service.applyTweaks(id,consent));
+  register('diagnostics',()=>service.native.call('diagnostics'));
+  register('preferences',value=>service.preferences(value));
+  register('openDataFolder',async()=>{const error=await require('electron').shell.openPath(app.getPath('userData'));if(error)throw new Error(error);return true;});
+  register('toolCatalog',()=>service.toolCatalog());
+  register('inspectTool',id=>service.inspectTool(id));
+  register('reviewTool',(id,selection)=>service.reviewTool(id,selection));
+  register('applyTool',(id,acknowledged)=>service.applyTool(id,acknowledged));
+  register('createRestorePoint',()=>service.createRestorePoint());
+  register('restoreAll',()=>service.restoreAll());
+  register('exportBackup',async()=>{
+    const choice=await dialog.showSaveDialog(window,{title:'Exportar copia de datos de NEXO',defaultPath:'NEXO-backup.json',filters:[{name:'Copia JSON',extensions:['json']}]});
+    if(choice.canceled)return false;
+    await fs.writeFile(choice.filePath,JSON.stringify({format:'nexo-local-copy',exportedAt:new Date().toISOString(),data:service.store.data},null,2),'utf8');return true;
+  });
+  register('openSystemTool',async id=>{
+    await service.assertSupported();
+    if(id==='nvidia-panel')return service.native.call('nvidiaPanel');
+    const schemes={startup:'ms-settings:startupapps',graphics:'ms-settings:display-advancedgraphics',display:'ms-settings:display',apps:'ms-settings:appsfeatures',security:'windowsdefender://coreisolation',nvidia:'https://www.nvidia.com/Download/index.aspx',amd:'https://www.amd.com/en/support',intel:'https://www.intel.com/content/www/us/en/download-center/home.html'};
+    if(Object.hasOwn(schemes,id)){await require('electron').shell.openExternal(schemes[id]);return true;}
+    const executables={drives:'dfrgui.exe',cleanup:'cleanmgr.exe',restore:'rstrui.exe',protection:'SystemPropertiesProtection.exe',taskmgr:'Taskmgr.exe'};
+    if(!Object.hasOwn(executables,id))throw new Error('Herramienta de Windows no permitida.');
+    const executable=path.join(process.env.SystemRoot||'C:\\Windows','System32',executables[id]);
+    await new Promise((resolve,reject)=>{const child=spawn(executable,[],{windowsHide:false,detached:true,stdio:'ignore',shell:false});child.once('error',reject);child.once('spawn',()=>{child.unref();resolve();});});return true;
+  });
   register('state', () => service.state());
   register('snapshot', () => service.native.call('snapshot'));
   register('scan', () => service.scan());

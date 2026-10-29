@@ -1,5 +1,5 @@
 param(
-  [Parameter(Mandatory=$true)][ValidateSet('snapshot','games','powerPlans','powerSet','priorityGet','prioritySet','animationsGet','animationsSet','memoryCandidates','memoryTrim','tweakInspect','tweakWrite','metricsStream','platform','gamePreferences','gamePreferenceWrite')][string]$Action,
+  [Parameter(Mandatory=$true)][ValidateSet('snapshot','games','powerPlans','powerSet','priorityGet','prioritySet','animationsGet','animationsSet','memoryCandidates','memoryTrim','tweakInspect','tweakWrite','metricsStream','platform','gamePreferences','gamePreferenceWrite','diagnostics','toolInspect','toolApply','restorePoint','nvidiaPanel')][string]$Action,
   [string]$Payload = 'e30='
 )
 $ErrorActionPreference = 'Stop'
@@ -8,6 +8,8 @@ $ProgressPreference = 'SilentlyContinue'
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.Win32.SafeHandles;
 public static class NexoNative {
   [StructLayout(LayoutKind.Sequential)] public struct MEMORYSTATUSEX {
     public uint length, load; public ulong total, available, pageTotal, pageAvailable, virtualTotal, virtualAvailable, extended;
@@ -33,6 +35,35 @@ public static class NexoNative {
   [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr handle);
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
   [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr window, out uint pid);
+  [StructLayout(LayoutKind.Sequential)] private struct FILE_INFO {
+    public uint attributes; public System.Runtime.InteropServices.ComTypes.FILETIME creation, access, write;
+    public uint volume, sizeHigh, sizeLow, links, indexHigh, indexLow;
+  }
+  [StructLayout(LayoutKind.Sequential)] private struct DISPOSITION { public byte delete; }
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] private static extern SafeFileHandle CreateFile(string path, uint access, uint share, IntPtr security, uint mode, uint flags, IntPtr template);
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] private static extern uint GetFinalPathNameByHandle(SafeFileHandle handle, StringBuilder path, uint length, uint flags);
+  [DllImport("kernel32.dll", SetLastError=true)] private static extern bool GetFileInformationByHandle(SafeFileHandle handle, out FILE_INFO info);
+  [DllImport("kernel32.dll", SetLastError=true)] private static extern bool SetFileInformationByHandle(SafeFileHandle handle, int kind, ref DISPOSITION info, uint length);
+  public static bool DeleteReviewedFile(string path, string root, long length, long modifiedTicks) {
+    try {
+      string full=System.IO.Path.GetFullPath(path), prefix=System.IO.Path.GetFullPath(root).TrimEnd('\\')+"\\";
+      if (!full.StartsWith(prefix,StringComparison.OrdinalIgnoreCase)) return false;
+      // Open without delete sharing; resolve and delete the same handle. A junction swap cannot redirect deletion.
+      using (SafeFileHandle handle=CreateFile(full,0x10080,3,IntPtr.Zero,3,0x200000,IntPtr.Zero)) {
+        if (handle.IsInvalid) return false;
+        var buffer=new StringBuilder(32768); uint count=GetFinalPathNameByHandle(handle,buffer,(uint)buffer.Capacity,0);
+        if (count==0 || count>=buffer.Capacity) return false;
+        string actual=buffer.ToString(); if(actual.StartsWith(@"\\?\")) actual=actual.Substring(4);
+        if (!actual.Equals(full,StringComparison.OrdinalIgnoreCase) || !actual.StartsWith(prefix,StringComparison.OrdinalIgnoreCase)) return false;
+        FILE_INFO info; if(!GetFileInformationByHandle(handle,out info) || (info.attributes & 0x410)!=0) return false;
+        long size=((long)info.sizeHigh<<32)|info.sizeLow;
+        long fileTime=((long)(uint)info.write.dwHighDateTime<<32)|(uint)info.write.dwLowDateTime;
+        if(size!=length || DateTime.FromFileTimeUtc(fileTime).Ticks!=modifiedTicks) return false;
+        var disposition=new DISPOSITION { delete=1 };
+        return SetFileInformationByHandle(handle,4,ref disposition,1);
+      }
+    } catch { return false; }
+  }
 }
 '@
 function Get-Memory {
@@ -125,17 +156,26 @@ function Get-Candidates {
 }
 # NEXO_PLATFORM_FUNCTIONS
 # NEXO_TWEAK_FUNCTIONS
+# NEXO_SYSTEM_FUNCTIONS
+# NEXO_TOOL_FUNCTIONS
 try {
   $data = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Payload)) | ConvertFrom-Json
-  if($Action -in @('powerSet','prioritySet','animationsSet','memoryTrim','tweakWrite','gamePreferenceWrite') -and -not $data.restoring){Assert-SupportedWindows}
+  if($Action -in @('powerSet','prioritySet','animationsSet','memoryTrim','tweakWrite','gamePreferenceWrite','toolApply','restorePoint') -and -not $data.restoring){Assert-SupportedWindows}
   $result = switch ($Action) {
     'platform' { Get-PlatformInfo }
+    'diagnostics' { Get-NexoDiagnostics }
+    'toolInspect' { Inspect-NexoTool ([string]$data.tool) }
+    'toolApply' { Invoke-NexoTool $data }
+    'restorePoint' { New-NexoRestorePoint }
+    'nvidiaPanel' { Assert-SupportedWindows; Open-NvidiaPanel }
     'gamePreferences' { ,@(Get-GamePreferences $data) }
     'gamePreferenceWrite' { Write-GamePreference $data }
     'metricsStream' {
+      $tick=0;$gpuSample=$null
       while ($true) {
         $cpu = [NexoNative]::CpuSample()
-        $sample = @{ memory=(Get-Memory); power=(Get-PowerSample); cpuPercent=if ($cpu -lt 0) { $null } else { [math]::Round($cpu,1) }; capturedAt=[DateTime]::UtcNow.ToString('o') }
+        if($tick % 3 -eq 0){$gpuSample=Get-NvidiaSample};$tick++
+        $sample = @{ memory=(Get-Memory); power=(Get-PowerSample); gpuTelemetry=$gpuSample; cpuPercent=if ($cpu -lt 0) { $null } else { [math]::Round($cpu,1) }; capturedAt=[DateTime]::UtcNow.ToString('o') }
         [Console]::Out.WriteLine((@{data=$sample} | ConvertTo-Json -Depth 6 -Compress))
         [Console]::Out.Flush()
         Start-Sleep -Milliseconds 1000
@@ -143,8 +183,8 @@ try {
     }
     'tweakInspect' {
       $ids = @($data.ids)
-      if ($ids.Count -lt 1 -or $ids.Count -gt 40) { throw 'Seleccion de ajustes no valida.' }
-      ,@(foreach ($id in $ids) { Get-TweakInspection (Get-Definition ([string]$id)) })
+      if ($ids.Count -lt 1 -or $ids.Count -gt 160) { throw 'Seleccion de ajustes no valida.' }
+      ,@(foreach ($id in $ids) { Get-TweakInspection (Get-Definition ([string]$id)) ([string]$data.scope) })
     }
     'tweakWrite' { Write-Tweak $data }
     'snapshot' {
@@ -236,6 +276,6 @@ try {
   @{ data=$result } | ConvertTo-Json -Depth 12 -Compress
   exit 0
 } catch {
-  @{ error=$_.Exception.Message } | ConvertTo-Json -Compress
+  @{ error=$_.Exception.Message; unchanged=($_.Exception.Data['NexoUnchanged'] -eq $true) } | ConvertTo-Json -Compress
   exit 1
 }

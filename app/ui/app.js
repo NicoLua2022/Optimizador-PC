@@ -5,6 +5,7 @@ import { renderHub } from './hub.js';
 import { gameArtwork } from './game-art.js';
 import { laptopPage } from './laptop.js';
 import { recommendations } from './recommendations.js';
+import { ToolsWorkspace } from './workspace-tools.js';
 const icons = {
   home:'M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',
   games:'M7 7h10c3 0 5 10 3 11-2 1-4-3-5-3H9c-1 0-3 4-5 3C2 17 4 7 7 7ZM6 11h5m-2.5-2.5v5M16 11h.01M18 13h.01',
@@ -33,10 +34,12 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;',
 let api = window.nexo || demoAPI;
 let laptopReview=null;
 let state, snapshot, route = location.hash.slice(1) || 'dashboard', busy = false, candidates = [], search = '', sourceFilter = 'Todos', telemetryError = '';
-const routes = [['dashboard','Resumen','home'],['games','Mis juegos','games'],['optimize','Optimización','tune'],['laptop','Laptop','battery'],['memory','Memoria RAM','memory'],['benchmark','Comparar FPS','chart'],['history','Historial','history']];
+const routes = [['dashboard','Resumen','home'],['games','Mis juegos','games'],['optimize','Optimización','tune'],['scanner','Diagnóstico','scan'],['tools','Herramientas','bolt'],['guide','Guía GPU','gpu'],['laptop','Laptop','battery'],['memory','Memoria RAM','memory'],['benchmark','Comparar FPS','chart'],['history','Historial','history']];
 const $ = selector => document.querySelector(selector);
 const live=new LiveMetrics();
-const tweaks=new TweakLibrary({api:()=>state.demo?demoAPI:api,demo:()=>state.demo,state:()=>state,snapshot:()=>snapshot,render:()=>render(),setState:value=>state=value,icon,escape,button,openDialog,perform,toast});
+const context={api:()=>state.demo?demoAPI:api,demo:()=>state.demo,state:()=>state,snapshot:()=>snapshot,render:()=>render(),setState:value=>state=value,icon,escape,button,openDialog,perform,toast};
+const tweaks=new TweakLibrary(context),laptopTweaks=new TweakLibrary(context,'laptop'),workspaceTools=new ToolsWorkspace(context);
+const activeLibrary=()=>route==='laptop'?laptopTweaks:tweaks;
 function toast(message, error=false) { const t=$('#toast'); t.textContent=message; t.className=error?'error':''; t.hidden=false; clearTimeout(toast.timer); toast.timer=setTimeout(()=>t.hidden=true,7000); }
 function header(eyebrow,title,subtitle,button='') { return `<div class="page-heading"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${subtitle}</p></div>${button}</div>`; }
 function button(text,action,kind='secondary',ico='arrow',extra='') { return `<button class="button ${kind}" data-action="${action}" ${extra}>${icon(ico)}${text}</button>`; }
@@ -67,13 +70,15 @@ function renderComparisons() {
   for (const b of state.benchmarks) { const key=b.gameId+'|'+b.context; if (!groups.has(key)) groups.set(key,{}); const pair=groups.get(key); if (!pair[b.phase]) pair[b.phase]=b; }
   return [...groups.values()].filter(p=>p.before&&p.after).map(({before:a,after:b})=>{const change=(b.average/a.average-1)*100;return `<div class="comparison panel"><div><span class="eyebrow">${escape(state.games.find(g=>g.id===a.gameId)?.name||'Juego')}</span><h3>${escape(a.context)}</h3><small>Verifica que las capturas sean equivalentes; una comparación no demuestra causalidad.</small></div><div><span>${a.average.toFixed(1)} → ${b.average.toFixed(1)} FPS</span><strong class="${change>=0?'positive':'negative'}">${change>=0?'+':''}${change.toFixed(1)} %</strong></div></div>`;}).join('');
 }
-function historyValue(value){return Array.isArray(value)?value.map(v=>v.name+': '+(v.exists?String(v.value):'No existía')).join(' · '):String(value);}
+function historyValue(value){return Array.isArray(value)?value.map(v=>v.type?v.key+' · '+JSON.stringify(v.state):v.name+': '+(v.exists?String(v.value):'No existía')).join(' · ').slice(0,700):String(value);}
 function historyPage() {
-  const labels={pending:'Sin verificar',applied:'Aplicado',restored:'Restaurado','restore-failed':'Error al restaurar'};
-  return `${header('SIEMPRE HAY VUELTA ATRÁS','Cada cambio, a la vista.','Los ajustes de energía permanecen hasta que los restaures, incluso al cerrar NEXO.')}<div class="notice warning">${icon('info')} Restaura tus ajustes al terminar de jugar. Si Windows rechazó una operación o la aplicación se cerró durante ella, el historial conserva el valor original para recuperarlo.</div><div class="history-list">${state.history.map(h=>`<section class="panel history-item"><span class="history-icon">${icon(h.status==='restored'?'check':'history')}</span><div><span class="small-tag ${h.status==='restored'?'success':''}">${labels[h.status]||escape(h.status)}</span><h3>${escape(h.label)}</h3><p>${new Date(h.at).toLocaleString('es-MX')} · ${escape(historyValue(h.before))} → ${escape(historyValue(h.after))}</p>${h.error?`<p class="negative">${escape(h.error)}</p>`:''}</div>${h.status!=='restored'?button('Restaurar','restore','secondary','restore',`data-id="${escape(h.id)}"`):'<span class="restored-label">Valor original recuperado</span>'}</section>`).join('')||empty('Sin cambios todavía','Cuando apliques un ajuste, verás aquí qué cambió y cómo restaurarlo.','history')}</div>`;
+  const labels={pending:'Sin verificar',applied:'Aplicado',restored:'Restaurado','restore-failed':'Error al restaurar',cancelled:'Cancelado sin cambios'};
+  return `${header('SIEMPRE HAY VUELTA ATRÁS','Cada cambio, a la vista.','Los ajustes de energía permanecen hasta que los restaures, incluso al cerrar NEXO.')}<div class="notice warning">${icon('info')} Restaura tus ajustes al terminar de jugar. Si Windows rechazó una operación o la aplicación se cerró durante ella, el historial conserva el valor original para recuperarlo.</div>${workspaceTools.backupControls()}${workspaceTools.log()}<div class="history-list">${state.history.map(h=>`<section class="panel history-item"><span class="history-icon">${icon(h.status==='restored'?'check':'history')}</span><div><span class="small-tag ${h.status==='restored'?'success':''}">${labels[h.status]||escape(h.status)}</span><h3>${escape(h.label)}</h3><p>${new Date(h.at).toLocaleString('es-MX')} · ${escape(historyValue(h.before))} → ${escape(historyValue(h.after))}</p>${h.error?`<p class="negative">${escape(h.error)}</p>`:''}</div>${['pending','applied','restore-failed'].includes(h.status)?button('Restaurar','restore','secondary','restore',`data-id="${escape(h.id)}"`):`<span class="restored-label">${h.status==='cancelled'?'No se modificó Windows':'Valor original recuperado'}</span>`}</section>`).join('')||empty('Sin cambios todavía','Cuando apliques un ajuste, verás aquí qué cambió y cómo restaurarlo.','history')}</div>`;
 }
 function windowsPage() {
-  return `${header('SOLO SI TÚ LO ELIGES','Windows, a tu gusto.','Estos ajustes nunca forman parte del perfil de juego.')}<section class="panel windows-card"><div class="feature-icon blue">${icon('settings')}</div><div><span class="small-tag">OPCIONAL · REVERSIBLE</span><h2>Animaciones de controles</h2><p>Desactiva las animaciones del área de cliente que respetan las aplicaciones de Windows. Cambia la respuesta visual de algunos controles; no garantiza una mejora en juegos.</p><p>Tu configuración original se registra antes de aplicar el cambio. No altera temas, transparencia ni la resolución de pantalla.</p>${button('Desactivar estas animaciones','animations','secondary','settings')}</div></section><div class="notice">${icon('info')} Por defecto, NEXO conserva el aspecto de Windows. Para volver al estado anterior usa Historial → Restaurar.</div><section class="panel guidance"><div>${icon('shield')}<h2>Privado por diseño</h2></div><p>Hardware, biblioteca, perfiles y mediciones se guardan localmente en tu carpeta de usuario. No se envían a servidores ni se descargan «optimizaciones» de terceros. No requiere cuenta ni suscripción.</p></section>`;
+  const prefs=state.settings||{autoRestorePoint:true,showAdvanced:false,confirmFeatureChanges:true};
+  const preferences=`<section class="panel program-preferences"><span class="eyebrow">PREFERENCIAS DE NEXO</span><h2>Configura tu espacio</h2>${[['autoRestorePoint','Intentar punto de restauración automático','Antes del primer lote del equipo en cada sesión. No habilita Protección del sistema ni evita los límites de Windows.'],['showAdvanced','Mostrar categoría Advanced','Incluye opciones de arranque, kernel y seguridad. Ninguna se aplica por mostrarlas.'],['confirmFeatureChanges','Confirmar cambios de funciones y consumo','Añade una casilla en la revisión de servicios, energía y red. Arranque, drivers, pérdida de datos y seguridad siempre exigen confirmación.']].map(([id,title,text])=>`<label class="setting-row"><span><strong>${title}</strong><small>${text}</small></span><input type="checkbox" data-preference="${id}" ${prefs[id]?'checked':''}></label>`).join('')}</section>`;
+  return `${header('SOLO SI TÚ LO ELIGES','Windows, a tu gusto.','Estos ajustes nunca forman parte del perfil de juego.')}${preferences}<section class="panel windows-card"><div class="feature-icon blue">${icon('settings')}</div><div><span class="small-tag">OPCIONAL · REVERSIBLE</span><h2>Animaciones de controles</h2><p>Desactiva las animaciones del área de cliente que respetan las aplicaciones de Windows. Cambia la respuesta visual de algunos controles; no garantiza una mejora en juegos.</p><p>Tu configuración original se registra antes de aplicar el cambio. No altera temas, transparencia ni la resolución de pantalla.</p>${button('Desactivar estas animaciones','animations','secondary','settings')}</div></section><div class="notice">${icon('info')} Por defecto, NEXO conserva el aspecto de Windows. Para volver al estado anterior usa Historial → Restaurar.</div><section class="panel guidance"><div>${icon('shield')}<h2>Privado por diseño</h2></div><p>Hardware, biblioteca, perfiles y mediciones se guardan localmente en tu carpeta de usuario. No se envían a servidores ni se descargan «optimizaciones» de terceros. No requiere cuenta ni suscripción.</p></section>`;
 }
 function render() {
   $('#navigation').innerHTML=routes.map(([id,label,ico])=>`<button class="nav-item ${route===id?'active':''}" data-route="${id}" ${route===id?'aria-current="page"':''}>${icon(ico)}${label}${id==='games'?`<span class="nav-count">${state.games.length}</span>`:''}</button>`).join('');
@@ -82,11 +87,11 @@ function render() {
   $('#demo-banner').hidden=!state.demo;
   $('#platform-banner').hidden=snapshot?.platform?.supported!==false;$('#platform-banner').textContent=snapshot?.platform?.reason||'Solo Windows 10 y Windows 11: los cambios están bloqueados en este sistema.';
   $('#connection').innerHTML=`<span class="status-dot ${telemetryError?'warn':''}"></span>${state.demo?'Modo demostración':telemetryError?'Lectura no disponible':'Windows · Local'}`;
-  const pages={dashboard,games:gamesPage,optimize:optimizePage,memory:memoryPage,benchmark:benchmarkPage,history:historyPage,windows:windowsPage,laptop:()=>laptopPage({snapshot,icon,button,escape})};
+  const pages={dashboard,games:gamesPage,optimize:optimizePage,memory:memoryPage,benchmark:benchmarkPage,history:historyPage,windows:windowsPage,scanner:()=>workspaceTools.scanner(),tools:()=>workspaceTools.render(),guide:()=>workspaceTools.guide(),laptop:()=>laptopPage({snapshot,icon,button,escape})+(snapshot?.device?.isLaptop?laptopTweaks.render(true):'')};
   $('#main').innerHTML=(pages[route]||dashboard)();
   document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=icon(el.dataset.icon));
   document.querySelectorAll('[data-action]').forEach(b=>{b.disabled=busy||b.hasAttribute('disabled');});
-  if(route==='optimize')tweaks.paint();
+  if(route==='optimize'||route==='laptop'&&snapshot?.device?.isLaptop)activeLibrary().paint();
   live.paint(snapshot);
   $('#main').classList.remove('route-enter');requestAnimationFrame(()=>$('#main').classList.add('route-enter'));
 }
@@ -115,7 +120,8 @@ document.addEventListener('click',async event=>{
   const filter=event.target.closest('[data-filter]'); if(filter){sourceFilter=filter.dataset.filter;render();return;}
   const el=event.target.closest('[data-action]'); if(!el||busy)return;
   const {action,id}=el.dataset;
-  if(await tweaks.handle(action,id,el))return;
+  if(await activeLibrary().handle(action,id,el))return;
+  if(await workspaceTools.handle(action,id))return;
   if(action.startsWith('goto-')){location.hash=action.slice(5);return;}
   if(action==='close'){$('#dialog').close();return;}
   if(action==='choose-exe')return perform(async()=>{state=await api.chooseGameExecutable(id);$('#dialog').close();gameDialog(id);},'Ejecutable del juego actualizado.');
@@ -135,7 +141,7 @@ document.addEventListener('click',async event=>{
     return perform(async()=>{state=await api.profile(id,profile); if(action==='apply-profile')state=await api.apply(id);$('#dialog').close();},action==='apply-profile'?'Operación completada. Revisa el historial y compara una captura.':'Perfil guardado.');
   }
   if(action==='launch')return perform(()=>api.launch(id),'Inicio solicitado al launcher o ejecutable.');
-  if(action==='restore')return perform(async()=>{state=await api.restore(id);if($('#dialog').open)$('#dialog').close();if(route==='optimize')await tweaks.load(true);},'Valor original restaurado.');
+  if(action==='restore')return perform(async()=>{state=await api.restore(id);if($('#dialog').open)$('#dialog').close();if(route==='optimize'||route==='laptop'&&snapshot?.device?.isLaptop)await activeLibrary().load(true);},'Valor original restaurado.');
   if(action==='animations'){openDialog(`<span class="eyebrow">CAMBIO VISUAL OPCIONAL</span><h2>¿Desactivar animaciones de controles?</h2><p>Puede afectar a la apariencia de algunas aplicaciones. Guardaremos el valor actual en el historial para que puedas restaurarlo.</p><div class="dialog-actions">${button('Cancelar','close','secondary','close')}${button('Desactivar y registrar','confirm-animations','primary','check')}</div>`);return;}
   if(action==='confirm-animations')return perform(async()=>{state=await api.animations(false);$('#dialog').close();},'Ajuste visual registrado. Puedes restaurarlo desde el historial.');
   if(action==='memory-scan')return perform(async()=>{candidates=await api.memoryCandidates();},'Análisis terminado. No se ha liberado memoria.');
@@ -151,15 +157,15 @@ document.addEventListener('click',async event=>{
     return perform(async()=>{state=await api.importBenchmark(gameId,action==='import-before'?'before':'after',context);},'Capturas actualizadas.');
   }
 });
-document.addEventListener('change',event=>{if(event.target.dataset.tweakSelect)tweaks.select(event.target.dataset.tweakSelect,event.target.checked);});
-document.addEventListener('input',event=>{if(event.target.id==='tweak-search'){tweaks.search=event.target.value;tweaks.paint();return;}if(event.target.id==='game-search'){search=event.target.value;const start=event.target.selectionStart;render();$('#game-search').focus();$('#game-search').setSelectionRange?.(start,start);}});
+document.addEventListener('change',event=>{if(event.target.dataset.preference){const key=event.target.dataset.preference,value=event.target.checked;perform(async()=>{state=await api.preferences({[key]:value});tweaks.selected.clear();laptopTweaks.selected.clear();});return;}if(event.target.dataset.tweakSelect)activeLibrary().select(event.target.dataset.tweakSelect,event.target.checked);workspaceTools.changed(event.target);});
+document.addEventListener('input',event=>{if(event.target.id==='tweak-search'){activeLibrary().search=event.target.value;activeLibrary().paint();return;}if(event.target.id==='game-search'){search=event.target.value;const start=event.target.selectionStart;render();$('#game-search').focus();$('#game-search').setSelectionRange?.(start,start);}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[role="button"][data-action]'))e.target.click();});
-window.addEventListener('hashchange',()=>{route=location.hash.slice(1)||'dashboard';render();if(route==='optimize')tweaks.load();$('#main').focus();window.scrollTo(0,0);});
-async function init(){try{state=await api.state();tweaks.catalog=typeof api.tweakCatalog==='function'?await api.tweakCatalog():await demoAPI.tweakCatalog();if(state.demo){demoAPI.catalog=tweaks.catalog;state={...state,games:demoGames};api=demoAPI;}render();await refreshTelemetry();render();if(!state.demo&&state.history.some(h=>h.status==='pending'||h.status==='restore-failed'))toast('Hay cambios sin verificar. Revisa el historial para restaurarlos.',true);}catch(e){$('#main').textContent='No se pudo iniciar NEXO: '+e.message;}}
+window.addEventListener('hashchange',()=>{route=location.hash.slice(1)||'dashboard';render();if(route==='optimize'||route==='laptop'&&snapshot?.device?.isLaptop)activeLibrary().load();$('#main').focus();window.scrollTo(0,0);});
+async function init(){try{state=await api.state();tweaks.catalog=typeof api.tweakCatalog==='function'?await api.tweakCatalog():await demoAPI.tweakCatalog();laptopTweaks.catalog=tweaks.catalog;workspaceTools.catalog=typeof api.toolCatalog==='function'?await api.toolCatalog():await demoAPI.toolCatalog();if(state.demo){demoAPI.catalog=tweaks.catalog;state={...state,games:demoGames};api=demoAPI;}render();await refreshTelemetry();render();if(!state.demo&&state.history.some(h=>h.status==='pending'||h.status==='restore-failed'))toast('Hay cambios sin verificar. Revisa el historial para restaurarlos.',true);}catch(e){$('#main').textContent='No se pudo iniciar NEXO: '+e.message;}}
 await init();
 if(state&&!state.demo&&typeof api.scan==='function'){await perform(async()=>{state=await api.scan();});}
 if(state){
-  if(route==='optimize')tweaks.load();
+  if(route==='optimize'||route==='laptop'&&snapshot?.device?.isLaptop)activeLibrary().load();
   const source=state.demo?demoAPI:api;
   if(typeof source.onTelemetry==='function')source.onTelemetry(message=>{if(!snapshot)snapshot={};live.receive(message,snapshot);});
   setInterval(()=>live.paint(snapshot),1000);

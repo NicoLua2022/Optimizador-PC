@@ -5,6 +5,7 @@ export class LiveMetrics {
     const sample=message.sample;if(!sample?.memory||!Number.isFinite(sample.memory.availableGB))return;
     Object.assign(snapshot,{memory:sample.memory,capturedAt:sample.capturedAt});
     if(Number.isFinite(sample.cpuPercent))snapshot.cpuPercent=sample.cpuPercent;
+    if(Object.hasOwn(sample,'gpuTelemetry'))snapshot.gpuTelemetry=sample.gpuTelemetry;
     if(sample.power&&snapshot.device){snapshot.device.acConnected=sample.power.acConnected;snapshot.device.batteryPercent=sample.power.batteryPercent;}
     this.lastReceived=Date.now();this.error='';this.history.push(sample.memory.usedPercent);if(this.history.length>60)this.history.shift();this.paint(snapshot);
   }
@@ -23,6 +24,8 @@ export class LiveMetrics {
     const memoryMetric=document.querySelector('[data-metric="memory"]');
     if(memoryMetric){memoryMetric.querySelector('.metric-value').textContent=Math.round(m.usedPercent);memoryMetric.querySelector('.metric-caption').textContent=`${used.toFixed(2)} de ${m.totalGB} GB en uso`;memoryMetric.querySelector('.ring-value').setAttribute('class',`ring-value ring-p${Math.round(m.usedPercent/5)*5}`);}
     const cpu=document.querySelector('[data-metric="cpu"]');if(cpu&&Number.isFinite(snapshot.cpuPercent)){cpu.querySelector('.metric-value').textContent=Math.round(snapshot.cpuPercent);cpu.querySelector('.ring-value').setAttribute('class',`ring-value ring-p${Math.round(snapshot.cpuPercent/5)*5}`);}
+    const gpu=document.querySelector('[data-metric="gpu"]'),g=snapshot.gpuTelemetry;
+    if(gpu){const fresh=g&&Date.now()-Date.parse(g.capturedAt)<10000;gpu.querySelector('.metric-value').textContent=fresh&&Number.isFinite(g.utilization)?Math.round(g.utilization):'—';gpu.querySelector('.metric-caption').textContent=fresh?`${g.temperatureC??'—'} °C · VRAM ${g.memoryUsedMB??'—'} / ${g.memoryTotalMB??'—'} MB`:'Sin lectura NVIDIA compatible';gpu.querySelector('.ring-value').setAttribute('class',`ring-value ring-p${fresh&&Number.isFinite(g.utilization)?Math.round(g.utilization/5)*5:0}`);}
     document.querySelectorAll('.memory-bar>span').forEach(e=>e.className=`usage-p${Math.round(m.usedPercent/5)*5}`);
     const graph=document.querySelector('#ram-sparkline');if(graph&&this.history.length){const points=this.history.map((v,i)=>`${i*600/59},${100-Math.max(0,Math.min(100,v))}`).join(' ');graph.setAttribute('points',points);}
   }

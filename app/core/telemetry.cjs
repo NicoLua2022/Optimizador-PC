@@ -4,8 +4,10 @@ const fs = require('node:fs');
 function nativeScript() {
   return fs.readFileSync(path.join(__dirname,'../native/bridge.ps1'),'utf8')
     .replace('# NEXO_PLATFORM_FUNCTIONS',()=>fs.readFileSync(path.join(__dirname,'../native/platform.ps1'),'utf8'))
-    .replace('# NEXO_TWEAK_FUNCTIONS',fs.readFileSync(path.join(__dirname,'../native/tweaks.ps1'),'utf8'))
-    .replace('__NEXO_CATALOG__',Buffer.from(fs.readFileSync(path.join(__dirname,'../shared/tweaks.json'))).toString('base64'));
+    .replace('# NEXO_TWEAK_FUNCTIONS',()=>fs.readFileSync(path.join(__dirname,'../native/tweaks.ps1'),'utf8'))
+    .replace('# NEXO_SYSTEM_FUNCTIONS',()=>fs.readFileSync(path.join(__dirname,'../native/system.ps1'),'utf8'))
+    .replace('# NEXO_TOOL_FUNCTIONS',()=>fs.readFileSync(path.join(__dirname,'../native/tools.ps1'),'utf8'))
+    .replace('__NEXO_CATALOG__',Buffer.from(JSON.stringify(require('./catalog.cjs'))).toString('base64'));
 }
 function powershell() { return path.join(process.env.SystemRoot || 'C:\\Windows','System32','WindowsPowerShell','v1.0','powershell.exe'); }
 class Telemetry {

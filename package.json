@@ -1,6 +1,6 @@
 {
   "name": "nexo-pc",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Asistente de rendimiento para juegos en Windows, con cambios reversibles",
   "private": true,
   "main": "app/main.cjs",
@@ -14,7 +14,7 @@
     "preview": "node scripts/preview.cjs",
     "test:ui": "playwright test",
     "package:win": "node scripts/package.cjs",
-    "test:native": "node scripts/validate-windows.cjs"
+    "test:native": "powershell -NoLogo -NoProfile -NonInteractive -File test/native-resource-policy.ps1 && node scripts/validate-windows.cjs && node scripts/validate-system-windows.cjs"
   },
   "engines": {
     "node": ">=24"

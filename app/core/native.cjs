@@ -2,7 +2,7 @@ const { spawn } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 const { nativeScript, powershell } = require('./telemetry.cjs');
-const ALLOWED = new Set(['snapshot', 'games', 'powerPlans', 'powerSet', 'priorityGet', 'prioritySet', 'animationsGet', 'animationsSet', 'memoryCandidates', 'memoryTrim', 'tweakInspect', 'tweakWrite', 'platform', 'gamePreferences', 'gamePreferenceWrite']);
+const ALLOWED = new Set(['snapshot', 'games', 'powerPlans', 'powerSet', 'priorityGet', 'prioritySet', 'animationsGet', 'animationsSet', 'memoryCandidates', 'memoryTrim', 'tweakInspect', 'tweakWrite', 'platform', 'gamePreferences', 'gamePreferenceWrite','diagnostics','toolInspect','toolApply','restorePoint','nvidiaPanel']);
 class Native {
   constructor(scriptProvider=nativeScript){this.scriptProvider=scriptProvider;}
   async call(action, payload = {}) {
@@ -19,7 +19,7 @@ class Native {
       child.stdin.on('error', () => {});
       child.stdin.end(script);
       let stdout = '', stderr = '', tooLarge = false;
-      const timer = setTimeout(() => { child.kill(); reject(new Error('Windows no respondió a tiempo. Comprueba el estado antes de reintentar.')); }, 45000);
+      const timer = setTimeout(() => { child.kill(); reject(new Error('Windows no respondió a tiempo. Comprueba el estado antes de reintentar.')); }, action==='restorePoint'?240000:action==='toolApply'?180000:90000);
       child.stdout.on('data', b => { stdout += b.toString('utf8'); if (stdout.length > 8e6) { tooLarge = true; child.kill(); } });
       child.stderr.on('data', b => { if (stderr.length < 8000) stderr += b.toString('utf8'); });
       child.on('error', error => { clearTimeout(timer); reject(error); });
@@ -28,9 +28,9 @@ class Native {
         if (tooLarge) return reject(new Error('Respuesta de Windows demasiado grande.'));
         try {
           const result = JSON.parse(stdout.replace(/^\uFEFF/, '').trim());
-          if (code !== 0 || result.error) throw new Error(result.error || 'La operación de Windows falló.');
+          if (code !== 0 || result.error) {const error=new Error(result.error || 'La operación de Windows falló.');error.unchanged=result.unchanged===true;throw error;}
           resolve(result.data);
-        } catch (error) { reject(new Error(error instanceof SyntaxError ? 'No se pudo leer la respuesta de PowerShell. Comprueba la política de ejecución de tu equipo. ' + stderr.slice(0, 600) : error.message)); }
+        } catch (error) { reject(error instanceof SyntaxError ? new Error('No se pudo leer la respuesta de PowerShell. Comprueba la política de ejecución de tu equipo. ' + stderr.slice(0, 600)) : error); }
       });
     });
   }

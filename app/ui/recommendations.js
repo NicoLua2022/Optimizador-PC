@@ -8,7 +8,7 @@ export function recommendations(name) {
     ['Prueba reproducible','Usa el mismo mapa y recorrido con idéntica resolución; evita comparar servidores diferentes.']
   ];
   if(n.includes('valorant'))return [
-    ['Renderizado multihilo','En tu Ryzen de 8 núcleos, prueba el renderizado multihilo desde los ajustes del juego.'],
+    ['Renderizado multihilo','Si tu CPU lo admite, prueba el renderizado multihilo desde los ajustes del juego.'],
     ['NVIDIA Reflex','Si está disponible, actívalo para evaluar latencia; no se instala ningún módulo externo.'],
     ['Calidad y límite de FPS','Prueba detalles y efectos bajos; usa un límite de FPS que tu equipo sostenga de forma estable.']
   ];

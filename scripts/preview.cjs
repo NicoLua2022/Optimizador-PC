@@ -5,7 +5,8 @@ const root = path.resolve(__dirname, '../app/ui');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg':'image/svg+xml', '.png':'image/png' };
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
-  if(url.pathname==='/catalog.json'){res.writeHead(200,{'Content-Type':'application/json'}).end(fs.readFileSync(path.join(root,'../shared/tweaks.json')));return;}
+  if(url.pathname==='/catalog.json'){res.writeHead(200,{'Content-Type':'application/json'}).end(JSON.stringify(require('../app/core/catalog.cjs')));return;}
+  if(url.pathname==='/tools.json'){res.writeHead(200,{'Content-Type':'application/json'}).end(JSON.stringify(require('../app/shared/tools.json')));return;}
   const file = path.resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
   if (!file.startsWith(root + path.sep)) { res.writeHead(403).end(); return; }
   fs.readFile(file, (error, data) => { if (error) { res.writeHead(404).end(); return; } res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'X-Content-Type-Options':'nosniff' }); res.end(data); });
