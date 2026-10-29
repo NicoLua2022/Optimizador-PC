@@ -33,4 +33,10 @@ Assert-Nexo (@($script:Calls|Where-Object{$_[0] -eq '/setactive' -or $_[0] -eq '
 $entry.target.setting='48e6b7a6-50f5-4782-a5d4-53bb8f07e226';$script:Calls=@();$denied=$false
 try{Write-SystemTweak @{resources=@($spec)} @{restoring=$true;value=@($entry)}|Out-Null}catch{$denied=$true}
 Assert-Nexo ($denied -and $script:Calls.Count -eq 0) 'A substituted setting must be rejected before a command.'
-'Native policy fixtures passed: canonical state, BCD exactness, encryption gate, AC-only restore, stable targets.'
+$script:DnsCalls=@()
+function Get-DnsClientServerAddress {param($InterfaceIndex,$AddressFamily,$ErrorAction) Assert-Nexo ($AddressFamily -eq 'IPv4') 'DNS query must explicitly select IPv4.';return [pscustomobject]@{family=4;index=$InterfaceIndex}}
+function Set-DnsClientServerAddress {param($InputObject,$ServerAddresses,[switch]$ResetServerAddresses,$ErrorAction) Assert-Nexo ($InputObject.family -eq 4) 'DNS setter must receive only the IPv4 CIM instance.';$script:DnsCalls+=@{index=$InputObject.index;reset=[bool]$ResetServerAddresses;servers=@($ServerAddresses)}}
+Set-NexoDnsV4 @{ifIndex=23} @{static=$true;servers=@('1.1.1.1','1.0.0.1')}
+Set-NexoDnsV4 @{ifIndex=23} @{static=$false;servers=@()}
+Assert-Nexo ($script:DnsCalls.Count -eq 2 -and -not $script:DnsCalls[0].reset -and $script:DnsCalls[1].reset) 'DNS must preserve explicit IPv4 static and DHCP operations.'
+'Native policy fixtures passed: canonical state, BCD exactness, encryption gate, AC-only restore, stable targets, IPv4-only DNS.'

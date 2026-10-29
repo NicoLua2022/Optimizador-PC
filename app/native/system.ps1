@@ -23,6 +23,13 @@ function Find-Adapter($target) {
   if (-not $adapter) { throw 'El adaptador original ya no esta disponible. Se conserva su copia.' }
   return $adapter
 }
+function Set-NexoDnsV4($adapter,$state) {
+  # Bind the setter to the IPv4 CIM object so IPv6 is never selected implicitly.
+  $ipv4=Get-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -AddressFamily IPv4 -ErrorAction Stop
+  if(-not $ipv4){throw 'El adaptador no expone configuracion DNS IPv4.'}
+  if($state.static){Set-DnsClientServerAddress -InputObject $ipv4 -ServerAddresses @($state.servers) -ErrorAction Stop|Out-Null}
+  else{Set-DnsClientServerAddress -InputObject $ipv4 -ResetServerAddresses -ErrorAction Stop|Out-Null}
+}
 function Read-ServiceState([string]$name) {
   $service = Get-Service -Name $name -ErrorAction SilentlyContinue
   if (-not $service) { return $null }
@@ -281,7 +288,7 @@ function Write-SystemTweak($definition,$data) {
       }
       'dns' {
         $adapter=Find-Adapter $target
-        if($state.static){Set-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -ServerAddresses @($state.servers) -ErrorAction Stop}else{Set-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -ResetServerAddresses -ErrorAction Stop}
+        Set-NexoDnsV4 $adapter $state
         # Preserve exact NameServer representation as well as DHCP/static mode.
         [void](Write-RegistryValues @($state.registry) @($state.registry))
         $actual=@((Get-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -AddressFamily IPv4).ServerAddresses)
