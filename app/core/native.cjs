@@ -1,13 +1,14 @@
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
-const ALLOWED = new Set(['snapshot', 'games', 'powerPlans', 'powerSet', 'priorityGet', 'prioritySet', 'animationsGet', 'animationsSet', 'memoryCandidates', 'memoryTrim']);
+const { nativeScript, powershell } = require('./telemetry.cjs');
+const ALLOWED = new Set(['snapshot', 'games', 'powerPlans', 'powerSet', 'priorityGet', 'prioritySet', 'animationsGet', 'animationsSet', 'memoryCandidates', 'memoryTrim', 'tweakInspect', 'tweakWrite']);
 class Native {
   async call(action, payload = {}) {
     if (!ALLOWED.has(action)) throw new Error('Operación nativa no permitida.');
     if (process.platform !== 'win32') throw new Error('Esta operación requiere Windows 10/11.');
-    const executable = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
-    const script = fs.readFileSync(path.join(__dirname, '../native/bridge.ps1'));
+    const executable = powershell();
+    const script = nativeScript();
     return new Promise((resolve, reject) => {
       const encoded = Buffer.from(JSON.stringify(payload)).toString('base64');
       // Run bundled commands via stdin, including from ASAR. Never alter execution policy.

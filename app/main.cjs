@@ -4,8 +4,9 @@ const fs = require('node:fs/promises');
 const { spawn } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 const { Native, Store } = require('./core/native.cjs');
+const { Telemetry } = require('./core/telemetry.cjs');
 const { Service } = require('./core/service.cjs');
-let window, service;
+let window, service, telemetry;
 const page = pathToFileURL(path.join(__dirname, 'ui/index.html')).href;
 function register(name, fn) {
   ipcMain.handle(name, async (event, ...args) => {
@@ -20,6 +21,15 @@ app.whenReady().then(() => {
   window = new BrowserWindow({ width: 1440, height: 960, minWidth: 1050, minHeight: 740, backgroundColor: '#0b1018', title: 'NEXO · PC Performance', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', (event) => event.preventDefault());
+  telemetry=new Telemetry(message=>{if(window&&!window.isDestroyed())window.webContents.send('telemetry',message);});
+  ipcMain.on('telemetry:subscribe',event=>{
+    const url=new URL(event.senderFrame.url);url.hash='';
+    if(process.platform==='win32'&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame&&url.href===page)telemetry.start();
+  });
+  register('tweakCatalog',()=>service.tweakCatalog());
+  register('tweakStatus',()=>service.tweakStatus());
+  register('reviewTweaks',ids=>service.reviewTweaks(ids));
+  register('applyTweaks',id=>service.applyTweaks(id));
   register('state', () => service.state());
   register('snapshot', () => service.native.call('snapshot'));
   register('scan', () => service.scan());
@@ -58,3 +68,5 @@ app.whenReady().then(() => {
   window.loadURL(page);
 });
 app.on('window-all-closed', () => app.quit());
+
+app.on('before-quit',()=>telemetry?.stop());

@@ -2,9 +2,11 @@ const { randomUUID } = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { analyzeCSV } = require('./benchmark.cjs');
+const { isDeepStrictEqual } = require('node:util');
+const catalog = require('../shared/tweaks.json');
 const ACTIVE = new Set(['pending', 'applied', 'restore-failed']);
 class Service {
-  constructor(native, store, platform = process.platform) { this.native = native; this.store = store; this.platform = platform; this.busy = false; }
+  constructor(native, store, platform = process.platform) { this.native = native; this.store = store; this.platform = platform; this.busy = false; this.reviews = new Map(); }
   async exclusive(fn) { if (this.busy) throw new Error('Hay otra operación en curso. Espera a que termine.'); this.busy = true; try { return await fn(); } finally { this.busy = false; } }
   state() { return { ...this.store.data, platform: this.platform, demo: this.platform !== 'win32' }; }
   game(id) { const game = this.store.data.games.find(g => g.id === id); if (!game) throw new Error('Juego no encontrado. Vuelve a escanear.'); return game; }
@@ -28,7 +30,7 @@ class Service {
     this.store.data.profiles[id] = { performance: value.performance, priority: value.priority }; this.store.save(); return this.state();
   }
   async change(kind, target, before, after, label) {
-    if (JSON.stringify(before) === JSON.stringify(after)) return null;
+    if (isDeepStrictEqual(before, after)) return null;
     if (this.store.data.history.some(h => ACTIVE.has(h.status) && h.kind === kind && JSON.stringify(h.target) === JSON.stringify(target))) throw new Error('Restaura primero el cambio anterior de este ajuste.');
     const entry = { id: randomUUID(), at: new Date().toISOString(), kind, target, before, after, label, status: 'pending' };
     this.store.data.history.unshift(entry); this.store.save();
@@ -37,7 +39,7 @@ class Service {
     return entry;
   }
   async write(entry, value, restoring = false) {
-    const action = { power: 'powerSet', priority: 'prioritySet', animations: 'animationsSet' }[entry.kind];
+    const action = { power: 'powerSet', priority: 'prioritySet', animations: 'animationsSet', tweak: 'tweakWrite' }[entry.kind];
     if (!action) throw new Error('Cambio desconocido.');
     return this.native.call(action, { ...entry.target, value, restoring });
   }
@@ -71,6 +73,45 @@ class Service {
       try { await this.write(entry, entry.before, true); entry.status = 'restored'; entry.restoredAt = new Date().toISOString(); delete entry.error; }
       catch (error) { entry.status = 'restore-failed'; entry.error = error.message; throw error; }
       finally { this.store.save(); }
+      return this.state();
+    });
+  }
+  tweakCatalog() { return catalog.map(({values,policy,...meta}) => meta); }
+  validateTweaks(ids) {
+    if (!Array.isArray(ids) || ids.length<1 || ids.length>40 || new Set(ids).size!==ids.length || !ids.every(id=>catalog.some(t=>t.id===id))) throw new Error('Selección de ajustes no válida.');
+  }
+  async tweakStatus() {
+    const result=await this.native.call('tweakInspect',{ids:catalog.map(t=>t.id)});
+    return result.map(({before,after,...status})=>status);
+  }
+  async reviewTweaks(ids) {
+    this.validateTweaks(ids);
+    return this.exclusive(async()=>{
+      const inspection=await this.native.call('tweakInspect',{ids});
+      if(inspection.some(t=>!t.available))throw new Error('Uno de los ajustes no está disponible. Actualiza la biblioteca.');
+      const changes=inspection.filter(t=>!t.configured);
+      if(!changes.length)throw new Error('Los ajustes seleccionados ya coinciden con Windows.');
+      for(const t of changes)if(this.store.data.history.some(h=>h.kind==='tweak'&&h.target.tweakId===t.id&&ACTIVE.has(h.status)))throw new Error('Restaura primero el ajuste anterior desde el historial.');
+      const review={id:randomUUID(),expiresAt:Date.now()+5*60*1000,changes};
+      this.reviews.clear();this.reviews.set(review.id,review);return structuredClone(review);
+    });
+  }
+  async applyTweaks(reviewId) {
+    return this.exclusive(async()=>{
+      const review=this.reviews.get(reviewId);this.reviews.delete(reviewId);
+      if(!review||review.expiresAt<Date.now())throw new Error('La revisión caducó. Revisa otra vez antes de aplicar.');
+      const current=await this.native.call('tweakInspect',{ids:review.changes.map(t=>t.id)});
+      if(current.length!==review.changes.length||current.some(t=>!t.available||!isDeepStrictEqual(t.before,review.changes.find(c=>c.id===t.id)?.before)))throw new Error('Windows cambió desde la revisión. Revisa de nuevo para conservar el valor original correcto.');
+      const previous=new Set(this.store.data.history.map(h=>h.id));
+      try{
+        for(const t of review.changes)await this.change('tweak',{tweakId:t.id},t.before,t.after,catalog.find(c=>c.id===t.id).title);
+      }catch(error){
+        for(const entry of this.store.data.history.filter(h=>!previous.has(h.id)&&ACTIVE.has(h.status))){
+          try{await this.write(entry,entry.before,true);entry.status='restored';}
+          catch(restoreError){entry.status='restore-failed';entry.error=restoreError.message;}
+        }
+        this.store.save();throw error;
+      }
       return this.state();
     });
   }

@@ -41,3 +41,32 @@ test('discovered names are treated as text rather than HTML',async({page})=>{
   await page.addInitScript(()=>{window.nexo={state:async()=>({demo:false,games:[{id:'1',name:'<img src=x onerror=alert(1)>',source:'Manual'}],profiles:{},history:[],benchmarks:[]}),snapshot:async()=>({memory:{totalGB:32,availableGB:16,usedPercent:50},gpu:[],disks:[]})};});
   await page.goto('/#games');await expect(page.locator('.game-card')).toContainText('<img src=x onerror=alert(1)>');await expect(page.locator('.game-card img')).toHaveCount(0);
 });
+test('tweak library filters, selects and reviews without applying immediately',async({page})=>{
+ await page.goto('/#optimize');await expect(page.locator('.tweak-card')).toHaveCount(33);
+ await page.getByRole('button',{name:'Gaming 6',exact:true}).click();await expect(page.locator('.tweak-card')).toHaveCount(6);
+ const box=page.getByRole('checkbox',{name:'Seleccionar Desactivar captura de Xbox',exact:true});await expect(box).toBeEnabled();await box.check();
+ await expect(page.locator('#tweak-selected-count')).toContainText('1 ajustes');
+ await page.getByRole('button',{name:'Revisar cambios',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('1 ajustes por aplicar');
+ await expect(page.getByRole('dialog')).toContainText('grab');await page.getByRole('button',{name:'Aplicar estos ajustes',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('necesita la aplicación de escritorio');await expect(page.getByRole('dialog')).toBeVisible();
+ await page.keyboard.press('Escape');await page.getByLabel('Buscar ajustes').fill('portapapeles');await page.getByRole('button',{name:'Todos 33',exact:true}).click();await expect(page.locator('.tweak-card')).toHaveCount(2);
+});
+test('live RAM changes without replacing process controls or clearing their selection',async({page})=>{
+ await page.addInitScript(()=>{
+  const state={demo:false,platform:'win32',games:[],profiles:{},history:[],benchmarks:[]};let callback;
+  window.nexo={state:async()=>state,snapshot:async()=>({memory:{totalGB:32,availableGB:20,usedPercent:37.5},gpu:[],disks:[]}),memoryCandidates:async()=>[{pid:123,name:'chrome',memoryMB:200}],onTelemetry:fn=>{callback=fn;window.emitTestSample=message=>callback(message);return ()=>{};}};
+ });
+ await page.goto('/#memory');await page.getByRole('button',{name:'Analizar aplicaciones'}).click();
+ const process=page.locator('input[name="process"]');await process.check();await process.evaluate(e=>e.dataset.identity='preserved');
+ await page.evaluate(()=>window.emitTestSample({sample:{memory:{totalGB:32,availableGB:19.123,usedPercent:40},cpuPercent:14,capturedAt:new Date().toISOString()}}));
+ await expect(page.locator('[data-live="ram-free"]')).toHaveText('19.12');
+ await page.evaluate(()=>window.emitTestSample({sample:{memory:{totalGB:32,availableGB:18.456,usedPercent:42},cpuPercent:20,capturedAt:new Date().toISOString()}}));
+ await expect(page.locator('[data-live="ram-free"]')).toHaveText('18.46');await expect(process).toBeChecked();await expect(process).toHaveAttribute('data-identity','preserved');
+ await expect(page.locator('[data-live="status"]')).toContainText('En vivo');await expect(page.locator('#ram-sparkline')).not.toHaveAttribute('points','');
+ await page.evaluate(()=>window.emitTestSample({error:'Monitor desconectado'}));await expect(page.locator('[data-live="error"]')).toContainText('Monitor desconectado');await expect(page.locator('[data-live="ram-free"]')).toHaveText('18.46');
+});
+test('demo RAM monitor samples every second and desktop changes remain opt-in',async({page})=>{
+ await page.goto('/#memory');const number=page.locator('[data-live="ram-free"]');await expect(page.locator('[data-live="status"]')).toContainText('En vivo');const before=await number.textContent();await expect(number).not.toHaveText(before,{timeout:3500});
+ await page.goto('/#optimize');await page.getByRole('button',{name:'Desktop 5',exact:true}).click();await expect(page.locator('.tweak-card')).toHaveCount(5);await expect(page.locator('input[data-tweak-select]:checked')).toHaveCount(0);
+ await page.getByRole('button',{name:'Detalles',exact:false}).first().click();await expect(page.getByRole('dialog')).toContainText('CAMBIO VISUAL');await expect(page.getByRole('dialog')).toContainText('restaur');
+});

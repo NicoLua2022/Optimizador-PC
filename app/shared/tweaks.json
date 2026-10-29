@@ -1,0 +1,612 @@
+[
+  {
+    "id": "game-mode",
+    "category": "Gaming",
+    "title": "Activar Modo Juego",
+    "description": "Solicita el Modo Juego de Windows para priorizar la sesi\u00f3n de juego.",
+    "impact": "Puede ayudar cuando otras tareas compiten por recursos; depende del juego.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\GameBar",
+        "name": "AutoGameModeEnabled",
+        "kind": "DWord",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "game-capture",
+    "category": "Gaming",
+    "title": "Desactivar captura de Xbox",
+    "description": "Desactiva las preferencias de captura Game DVR de tu usuario.",
+    "impact": "Dejar\u00e1s de poder grabar clips con los controles de captura de Xbox. No desinstala Game Bar.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "AppCaptureEnabled",
+        "kind": "DWord",
+        "value": 0
+      },
+      {
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_Enabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "policy": {
+      "path": "Software\\Policies\\Microsoft\\Windows\\GameDVR",
+      "name": "AllowGameDVR"
+    }
+  },
+  {
+    "id": "background-capture",
+    "category": "Gaming",
+    "title": "Detener grabaci\u00f3n en segundo plano",
+    "description": "Desmarca la grabaci\u00f3n hist\u00f3rica de clips de Xbox cuando el juego la admite.",
+    "impact": "Se pierde la opci\u00f3n de guardar lo que acaba de pasar. Puede reducir trabajo de grabaci\u00f3n.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "HistoricalCaptureEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "capture-audio",
+    "category": "Gaming",
+    "title": "Excluir audio de las capturas",
+    "description": "Desactiva la captura de audio en grabaciones de Xbox.",
+    "impact": "Solo afecta a las grabaciones; no silencia el juego.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "AudioCaptureEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "capture-mic",
+    "category": "Gaming",
+    "title": "Mantener el micr\u00f3fono fuera de los clips",
+    "description": "Desactiva la inclusi\u00f3n del micr\u00f3fono en las capturas de Xbox.",
+    "impact": "No cambia los permisos de micr\u00f3fono de Discord ni de los juegos.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "MicrophoneCaptureEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "controller-gamebar",
+    "category": "Gaming",
+    "title": "Evitar que el mando abra Game Bar",
+    "description": "Desactiva la preferencia que permite abrir Game Bar con el bot\u00f3n del mando.",
+    "impact": "Game Bar permanece instalada; el bot\u00f3n del mando deja de abrirla cuando Windows respeta este ajuste.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\GameBar",
+        "name": "UseNexusForGameBarEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "background-apps",
+    "category": "Background",
+    "title": "Limitar apps de la tienda en segundo plano",
+    "description": "Solicita desactivar la ejecuci\u00f3n en segundo plano de aplicaciones UWP en Windows 10.",
+    "impact": "Puede retrasar notificaciones de apps de la tienda. No detiene programas Win32.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+        "name": "GlobalUserDisabled",
+        "kind": "DWord",
+        "value": 1
+      }
+    ],
+    "maxBuild": 19045
+  },
+  {
+    "id": "restart-apps",
+    "category": "Background",
+    "title": "No reabrir aplicaciones al iniciar sesi\u00f3n",
+    "description": "Desactiva la preferencia de volver a abrir apps reiniciables tras iniciar sesi\u00f3n.",
+    "impact": "Tendr\u00e1s que abrir manualmente las aplicaciones despu\u00e9s de reiniciar.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+        "name": "RestartApps",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "windows-tips",
+    "category": "Background",
+    "title": "Desactivar consejos de Windows",
+    "description": "Desactiva las sugerencias y consejos de uso que Windows admite para tu usuario.",
+    "impact": "Reduce sugerencias; no desactiva servicios ni notificaciones de tus aplicaciones.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+        "name": "SoftLandingEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "welcome-tour",
+    "category": "Background",
+    "title": "Omitir bienvenida tras actualizaciones",
+    "description": "Desactiva la preferencia de mostrar la experiencia de bienvenida despu\u00e9s de actualizar.",
+    "impact": "Las actualizaciones y sus avisos de seguridad siguen activos.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+        "name": "SubscribedContent-310093Enabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "explorer-recent",
+    "category": "Debloat",
+    "title": "Ocultar archivos recientes en el Explorador",
+    "description": "Oculta las sugerencias de archivos recientes en Inicio del Explorador.",
+    "impact": "Oculta accesos; no elimina tus documentos.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+        "name": "ShowRecent",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "explorer-frequent",
+    "category": "Debloat",
+    "title": "Ocultar carpetas frecuentes",
+    "description": "Oculta la lista de carpetas utilizadas con frecuencia en el Explorador.",
+    "impact": "Tus carpetas y elementos anclados se conservan.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+        "name": "ShowFrequent",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "provider-suggestions",
+    "category": "Debloat",
+    "title": "Ocultar sugerencias del Explorador",
+    "description": "Desactiva las notificaciones promocionales del proveedor de sincronizaci\u00f3n en el Explorador.",
+    "impact": "No desinstala OneDrive ni detiene la sincronizaci\u00f3n de tus archivos.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "ShowSyncProviderNotifications",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "start-suggestions",
+    "category": "Debloat",
+    "title": "Ocultar sugerencias de apps en Inicio",
+    "description": "Desactiva las sugerencias de aplicaciones del men\u00fa Inicio de Windows 10.",
+    "impact": "Esta preferencia corresponde a Windows 10.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+        "name": "SystemPaneSuggestionsEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "maxBuild": 19045
+  },
+  {
+    "id": "silent-apps",
+    "category": "Debloat",
+    "title": "Evitar apps sugeridas autom\u00e1ticamente",
+    "description": "Desactiva la preferencia de instalar aplicaciones sugeridas silenciosamente en Windows 10.",
+    "impact": "No elimina aplicaciones instaladas ni impide las instalaciones que solicites.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+        "name": "SilentInstalledAppsEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "maxBuild": 19045
+  },
+  {
+    "id": "widgets",
+    "category": "Debloat",
+    "title": "Ocultar Widgets de la barra de tareas",
+    "description": "Oculta el bot\u00f3n de Widgets de Windows 11.",
+    "impact": "Ocultar el bot\u00f3n no desinstala Widgets ni garantiza detener su proceso.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 22000,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarDa",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "transparency",
+    "category": "Desktop",
+    "title": "Desactivar transparencia",
+    "description": "Desactiva la transparencia que respetan los elementos de la interfaz de Windows.",
+    "impact": "Cambia el aspecto de Windows. Este ajuste es siempre opcional.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        "name": "EnableTransparency",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "visual": true
+  },
+  {
+    "id": "taskbar-animations",
+    "category": "Desktop",
+    "title": "Reducir animaciones de la barra de tareas",
+    "description": "Desactiva la preferencia de animaci\u00f3n de la barra de tareas.",
+    "impact": "Cambia animaciones del escritorio, no los gr\u00e1ficos del juego.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarAnimations",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "visual": true
+  },
+  {
+    "id": "window-animations",
+    "category": "Desktop",
+    "title": "Desactivar animaci\u00f3n al minimizar",
+    "description": "Desactiva la preferencia de animaci\u00f3n al minimizar y maximizar ventanas.",
+    "impact": "La respuesta visual de las ventanas cambia. Requiere volver a iniciar sesi\u00f3n.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Control Panel\\Desktop\\WindowMetrics",
+        "name": "MinAnimate",
+        "kind": "String",
+        "value": "0"
+      }
+    ],
+    "visual": true
+  },
+  {
+    "id": "menu-delay",
+    "category": "Desktop",
+    "title": "Abrir submen\u00fas m\u00e1s r\u00e1pido",
+    "description": "Reduce a 100 ms la demora de apertura de men\u00fas cl\u00e1sicos.",
+    "impact": "Los submen\u00fas aparecen antes; puede hacer m\u00e1s f\u00e1cil abrir uno accidentalmente.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Control Panel\\Desktop",
+        "name": "MenuShowDelay",
+        "kind": "String",
+        "value": "100"
+      }
+    ],
+    "visual": true
+  },
+  {
+    "id": "task-view",
+    "category": "Desktop",
+    "title": "Ocultar bot\u00f3n Vista de tareas",
+    "description": "Oculta el bot\u00f3n Vista de tareas de la barra de tareas.",
+    "impact": "Win+Tab y los escritorios virtuales siguen disponibles.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "ShowTaskViewButton",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "visual": true
+  },
+  {
+    "id": "mouse-acceleration",
+    "category": "Input",
+    "title": "Desactivar aceleraci\u00f3n del puntero",
+    "description": "Solicita desactivar Mejorar la precisi\u00f3n del puntero de Windows.",
+    "impact": "Cambia el movimiento del rat\u00f3n en el escritorio. Los juegos con entrada raw pueden ignorarlo.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Control Panel\\Mouse",
+        "name": "MouseSpeed",
+        "kind": "String",
+        "value": "0"
+      },
+      {
+        "path": "Control Panel\\Mouse",
+        "name": "MouseThreshold1",
+        "kind": "String",
+        "value": "0"
+      },
+      {
+        "path": "Control Panel\\Mouse",
+        "name": "MouseThreshold2",
+        "kind": "String",
+        "value": "0"
+      }
+    ]
+  },
+  {
+    "id": "sticky-shortcut",
+    "category": "Input",
+    "title": "Evitar el atajo de Teclas especiales",
+    "description": "Desactiva el atajo y la confirmaci\u00f3n de Teclas especiales; conserva el resto de sus opciones.",
+    "impact": "Afecta a un atajo de accesibilidad; no desactiva una funci\u00f3n que ya tengas habilitada.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Control Panel\\Accessibility\\StickyKeys",
+        "name": "Flags",
+        "kind": "String",
+        "clearBits": 12
+      }
+    ],
+    "requireExisting": true
+  },
+  {
+    "id": "filter-shortcut",
+    "category": "Input",
+    "title": "Evitar el atajo de Teclas filtro",
+    "description": "Desactiva el atajo y la confirmaci\u00f3n de Teclas filtro; conserva el resto de sus opciones.",
+    "impact": "Afecta a un atajo de accesibilidad; no desactiva una funci\u00f3n que ya tengas habilitada.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Control Panel\\Accessibility\\Keyboard Response",
+        "name": "Flags",
+        "kind": "String",
+        "clearBits": 12
+      }
+    ],
+    "requireExisting": true
+  },
+  {
+    "id": "toggle-shortcut",
+    "category": "Input",
+    "title": "Evitar el atajo de Teclas de alternancia",
+    "description": "Desactiva el atajo y la confirmaci\u00f3n de Teclas de alternancia; conserva el resto de sus opciones.",
+    "impact": "Afecta a un atajo de accesibilidad; no desactiva una funci\u00f3n que ya tengas habilitada.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Control Panel\\Accessibility\\ToggleKeys",
+        "name": "Flags",
+        "kind": "String",
+        "clearBits": 12
+      }
+    ],
+    "requireExisting": true
+  },
+  {
+    "id": "advertising-id",
+    "category": "Privacy",
+    "title": "Desactivar identificador publicitario",
+    "description": "Desactiva el uso del identificador publicitario por las apps de Windows.",
+    "impact": "Es una preferencia de privacidad, sin aumento esperado de FPS.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+        "name": "Enabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "tailored-experiences",
+    "category": "Privacy",
+    "title": "Desactivar experiencias personalizadas",
+    "description": "Solicita no utilizar datos de diagn\u00f3stico para personalizar experiencias.",
+    "impact": "No desactiva diagn\u00f3sticos necesarios, Defender ni Windows Update.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Privacy",
+        "name": "TailoredExperiencesWithDiagnosticDataEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "app-tracking",
+    "category": "Privacy",
+    "title": "No seguir lanzamientos de aplicaciones",
+    "description": "Desactiva la preferencia de seguimiento de aperturas para personalizar Inicio.",
+    "impact": "Puede cambiar la lista de aplicaciones frecuentes de Inicio.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "Start_TrackProgs",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "recent-documents",
+    "category": "Privacy",
+    "title": "Ocultar elementos abiertos recientemente",
+    "description": "Desactiva la preferencia de elementos recientes en Inicio y Jump Lists.",
+    "impact": "Oculta sugerencias recientes; no borra los archivos.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "Start_TrackDocs",
+        "kind": "DWord",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "clipboard-history",
+    "category": "Privacy",
+    "title": "Desactivar historial del portapapeles",
+    "description": "Desactiva la preferencia del historial de Win+V.",
+    "impact": "Pierdes el acceso al historial de Win+V mientras est\u00e9 desactivado. El copiar/pegar b\u00e1sico se conserva.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Clipboard",
+        "name": "EnableClipboardHistory",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "policy": {
+      "path": "Software\\Policies\\Microsoft\\Windows\\System",
+      "name": "AllowClipboardHistory"
+    }
+  },
+  {
+    "id": "clipboard-sync",
+    "category": "Privacy",
+    "title": "Desactivar portapapeles en la nube",
+    "description": "Solicita no sincronizar el portapapeles entre dispositivos.",
+    "impact": "No se compartir\u00e1n nuevos elementos del portapapeles cuando Windows aplique la preferencia.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Clipboard",
+        "name": "EnableCloudClipboard",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "policy": {
+      "path": "Software\\Policies\\Microsoft\\Windows\\System",
+      "name": "AllowCrossDeviceClipboard"
+    }
+  },
+  {
+    "id": "cloud-search",
+    "category": "Privacy",
+    "title": "Excluir contenido de cuentas en la b\u00fasqueda",
+    "description": "Desactiva las preferencias de b\u00fasqueda de contenido de cuentas Microsoft y de trabajo.",
+    "impact": "Los archivos locales siguen siendo buscables. Solo disponible si Windows ya expone estas preferencias.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19041,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\SearchSettings",
+        "name": "IsMSACloudSearchEnabled",
+        "kind": "DWord",
+        "value": 0
+      },
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\SearchSettings",
+        "name": "IsAADCloudSearchEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "requireExisting": true
+  },
+  {
+    "id": "search-highlights",
+    "category": "Privacy",
+    "title": "Ocultar destacados de b\u00fasqueda",
+    "description": "Desactiva la preferencia de contenido destacado en la b\u00fasqueda de Windows.",
+    "impact": "Solo disponible si esta compilaci\u00f3n ya expone la preferencia.",
+    "refresh": "Cierra sesi\u00f3n y vuelve a entrar para que todas las aplicaciones lean la preferencia.",
+    "minBuild": 19044,
+    "values": [
+      {
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\SearchSettings",
+        "name": "IsDynamicSearchBoxEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "requireExisting": true
+  }
+]

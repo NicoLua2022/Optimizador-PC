@@ -1,5 +1,5 @@
 param(
-  [Parameter(Mandatory=$true)][ValidateSet('snapshot','games','powerPlans','powerSet','priorityGet','prioritySet','animationsGet','animationsSet','memoryCandidates','memoryTrim')][string]$Action,
+  [Parameter(Mandatory=$true)][ValidateSet('snapshot','games','powerPlans','powerSet','priorityGet','prioritySet','animationsGet','animationsSet','memoryCandidates','memoryTrim','tweakInspect','tweakWrite','metricsStream')][string]$Action,
   [string]$Payload = 'e30='
 )
 $ErrorActionPreference = 'Stop'
@@ -16,6 +16,15 @@ public static class NexoNative {
     public byte ACLineStatus, BatteryFlag, BatteryLifePercent, SystemStatusFlag; public uint BatteryLifeTime, BatteryFullLifeTime;
   }
   [DllImport("kernel32.dll", SetLastError=true)] public static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX value);
+  [DllImport("kernel32.dll")] public static extern bool GetSystemTimes(out long idle, out long kernel, out long user);
+  private static long previousIdle, previousTotal;
+  public static double CpuSample() {
+    long idle, kernel, user;
+    if (!GetSystemTimes(out idle, out kernel, out user)) return -1;
+    long total = kernel + user, elapsed = total - previousTotal, idleDelta = idle - previousIdle;
+    bool first = previousTotal == 0; previousTotal = total; previousIdle = idle;
+    return first || elapsed <= 0 ? -1 : Math.Max(0, Math.Min(100, 100.0 * (elapsed-idleDelta) / elapsed));
+  }
   [DllImport("kernel32.dll")] public static extern bool GetSystemPowerStatus(out SYSTEM_POWER_STATUS value);
   [DllImport("user32.dll", SetLastError=true)] public static extern bool SystemParametersInfo(uint action, uint param, ref int value, uint flags);
   [DllImport("user32.dll", EntryPoint="SystemParametersInfoW", SetLastError=true)] public static extern bool SetParameter(uint action, uint param, IntPtr value, uint flags);
@@ -30,7 +39,7 @@ function Get-Memory {
   $m = New-Object NexoNative+MEMORYSTATUSEX
   $m.length = [Runtime.InteropServices.Marshal]::SizeOf($m)
   if (-not [NexoNative]::GlobalMemoryStatusEx([ref]$m)) { throw 'No se pudo consultar la RAM.' }
-  return @{ totalGB = [math]::Round($m.total / 1GB, 1); availableGB = [math]::Round($m.available / 1GB, 2); usedPercent = $m.load }
+  return @{ totalGB = [math]::Round($m.total / 1GB, 1); availableGB = [math]::Round($m.available / 1GB, 3); availableBytes=$m.available; totalBytes=$m.total; usedPercent = $m.load }
 }
 function Get-ActivePlan {
   $text = & "$env:SystemRoot\System32\powercfg.exe" /getactivescheme
@@ -114,9 +123,25 @@ function Get-Candidates {
     try { if (Test-Owned $p.Id) { @{ pid=$p.Id; name=$p.ProcessName; memoryMB=[math]::Round($p.WorkingSet64/1MB); started=$p.StartTime.ToUniversalTime().Ticks.ToString([Globalization.CultureInfo]::InvariantCulture) } } } catch { continue }
   }
 }
+# NEXO_TWEAK_FUNCTIONS
 try {
   $data = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Payload)) | ConvertFrom-Json
   $result = switch ($Action) {
+    'metricsStream' {
+      while ($true) {
+        $cpu = [NexoNative]::CpuSample()
+        $sample = @{ memory=(Get-Memory); cpuPercent=if ($cpu -lt 0) { $null } else { [math]::Round($cpu,1) }; capturedAt=[DateTime]::UtcNow.ToString('o') }
+        [Console]::Out.WriteLine((@{data=$sample} | ConvertTo-Json -Depth 6 -Compress))
+        [Console]::Out.Flush()
+        Start-Sleep -Milliseconds 1000
+      }
+    }
+    'tweakInspect' {
+      $ids = @($data.ids)
+      if ($ids.Count -lt 1 -or $ids.Count -gt 40) { throw 'Seleccion de ajustes no valida.' }
+      ,@(foreach ($id in $ids) { Get-TweakInspection (Get-Definition ([string]$id)) })
+    }
+    'tweakWrite' { Write-Tweak $data }
     'snapshot' {
       $cpu = Get-CimInstance Win32_Processor
       $os = Get-CimInstance Win32_OperatingSystem

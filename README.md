@@ -16,7 +16,7 @@ La distribución es portable y **no tiene firma digital**. Windows puede mostrar
 
 ## Qué hace de verdad
 
-- **Hardware automático:** CPU, núcleos/hilos, modelo y versión de controlador de GPU, RAM física disponible, Windows y capacidad libre de volúmenes accesibles, incluidos discos externos conectados. CPU y RAM se actualizan cada 15 segundos mientras el panel está visible. El uso de GPU aparece como no disponible; no se inventan métricas ni VRAM.
+- **Hardware automático:** CPU, núcleos/hilos, modelo y versión de controlador de GPU, RAM física disponible, Windows y capacidad libre de volúmenes accesibles, incluidos discos externos conectados. CPU y RAM se muestrean cada segundo mediante un único proceso de monitorización persistente. Se actualizan los números, la hora y el gráfico sin reconstruir los controles; si la señal se interrumpe, se indica y se intenta reconectar. El uso de GPU aparece como no disponible; no se inventan métricas ni VRAM.
 - **Juegos instalados:** manifiestos locales de Steam, bibliotecas de Steam en otras unidades, manifiestos de Epic y entradas de desinstalación de Riot. No explora recursivamente tus discos. Xbox y otros launchers requieren añadir el ejecutable. Algunas instalaciones de Riot no registran `InstallLocation`: añádelas manualmente.
 - **Perfiles individuales:** plan Alto rendimiento existente y prioridad opcional `AboveNormal` para procesos del juego de tu usuario. Los ejecutables manuales se identifican por su ruta exacta. Los juegos Steam se inician con su URI oficial; Epic y Riot se abren desde sus launchers, sin inventar argumentos de autenticación.
 - **Consejos por juego:** CS2, VALORANT, Fortnite y Apex tienen recomendaciones de sus propios menús. Para otros juegos se muestran pautas generales. Son sugerencias manuales: NEXO no edita configuraciones ni garantiza que una opción exista en todas las versiones.
@@ -24,6 +24,20 @@ La distribución es portable y **no tiene firma digital**. Windows puede mostrar
 - **Windows visual separado:** cambio opcional de `SPI_SETCLIENTAREAANIMATION`; jamás se aplica con el perfil del juego. Se consulta y registra el valor anterior.
 - **Historial persistente:** guarda el valor original antes de llamar a Windows. Las operaciones ambiguas permanecen recuperables. Si una aplicación falla parcialmente, intenta restaurar los pasos anteriores; conserva cualquier error. Las prioridades incluyen PID y hora de inicio: un PID reutilizado no recibe una restauración de otro proceso.
 - **Comparación real de capturas:** importa CSV de frametimes y calcula FPS medios, 1 % low y P99 de tiempos de fotograma. No hay overlay, inyección, lectura de memoria del juego ni captura integrada.
+
+## Nuevo en 0.2.0: biblioteca de ajustes
+
+Hay **33 preferencias** en seis categorías: Gaming (6), Background (4), Debloat (6), Desktop (5), Input (4) y Privacy (8). Incluyen Modo Juego, desactivar captura de Xbox y grabación histórica, audio/micrófono de clips, botón del mando para Game Bar, aplicaciones reiniciables, consejos de Windows, sugerencias del Explorador, Widgets, animaciones/transparencia, aceleración del puntero, atajos de accesibilidad, identificador publicitario y portapapeles.
+
+**Seleccionar no aplica.** Filtra o busca, selecciona y pulsa **Revisar cambios**. La revisión enumera los efectos; **Aplicar estos ajustes** vuelve a leer Windows antes de escribir. Si el valor cambió durante la revisión, el lote se cancela para no conservar una copia obsoleta. La revisión dura cinco minutos y solo sirve una vez. Si una escritura falla, intenta restaurar todos los ajustes intentados; las restauraciones fallidas permanecen recuperables en Historial.
+
+Los cambios son de tu usuario (HKCU), con valores originales y tipos registrados, incluida su ausencia. Se elimina únicamente un valor creado o una clave hoja vacía que no existía; nunca se borra un árbol de claves ni otros valores. No se escriben políticas del equipo. Los controles que detectan una política relacionada aparecen como administrados. Los ajustes exclusivos de Windows 10 se bloquean en Windows 11; algunos requieren que el valor ya exista para evitar crear preferencias que esa instalación no reconoce.
+
+**Configurado** significa que los valores guardados coinciden con la preferencia solicitada, no que se haya medido un aumento de FPS. Ciertas preferencias pueden ser ignoradas por una versión o política de Windows. La interfaz indica cuándo cerrar sesión; no cierra sesión ni reinicia el Explorador automáticamente. Desktop cambia el aspecto y siempre es opcional. Debloat oculta sugerencias y botones, no desinstala apps. Input conserva las opciones de accesibilidad existentes y solo retira sus atajos. Desactivar captura no desinstala Game Bar.
+
+La RAM muestra GB disponibles con dos decimales, uso, hora de la última muestra y un gráfico de 60 muestras. El monitor usa `GlobalMemoryStatusEx` y `GetSystemTimes`; no ejecuta consultas CIM ni vuelve a compilar PowerShell en cada lectura. Al cerrar NEXO se termina el proceso de monitorización. La demostración genera muestras variables claramente identificadas; no son mediciones del PC anfitrión.
+
+Para actualizar desde 0.1.0, cierra NEXO y extrae la nueva carpeta en otra ubicación. Conserva `%APPDATA%/nexo-pc/state.json`: es compatible y mantiene el historial anterior y tus perfiles. No ejecutes dos versiones a la vez.
 
 ## Qué esperar del rendimiento
 
@@ -70,7 +84,7 @@ npm run test:ui
 # Si el entorno ya tiene Chromium:
 # PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:ui
 
-# Validación nativa EN WINDOWS: consultas reales y prioridad de un proceso de prueba
+# Validación EN WINDOWS: consultas, preferencias/restauración, monitor y proceso de prueba
 npm run test:native
 
 # Generar carpeta portable para Windows (también desde Linux)
@@ -87,8 +101,8 @@ La carpeta resultante es `dist/NEXO-win32-x64`. El workflow `.github/workflows/w
 
 Se guarda un JSON local en `%APPDATA%/nexo-pc/state.json` (Electron `userData`): biblioteca, perfiles, historial y hasta 100 capturas resumidas. No guardamos el contenido CSV completo ni enviamos telemetría. No borres estos datos si tienes ajustes pendientes de restaurar. Si el JSON está corrupto, el inicio se detiene y conserva el archivo; no sustituye silenciosamente el historial.
 
-No incorpora limpieza de archivos, overclock, control de ventiladores, actualización de drivers, medidor de temperatura ni autoajustes gráficos. Una prioridad restaurada tras terminar el proceso ya no requiere escribir en otro proceso. Los cambios manuales posteriores en Windows pueden hacer que el estado actual difiera del historial: «Restaurar» solicita el valor original registrado.
+No incorpora desinstalación masiva, limpieza de archivos, overclock, control de ventiladores, actualización de drivers, medidor de temperatura ni autoajustes gráficos. Una prioridad restaurada tras terminar el proceso ya no requiere escribir en otro proceso. Los cambios manuales posteriores en Windows pueden hacer que el estado actual difiera del historial: «Restaurar» solicita el valor original registrado.
 
-En este entorno Linux se validaron la lógica con pruebas automatizadas, la interfaz con Chromium, la sintaxis de PowerShell y la generación del paquete Windows. **Las operaciones Win32, detección en instalaciones reales y mejoras de FPS no se han validado en un equipo Windows físico.** El ZIP es una primera versión de prueba, no una certificación de rendimiento. Antes de distribuirla públicamente hacen falta esa validación y una firma de código.
+Las pruebas locales cubren lógica, revisión de lotes, rollback, flujo continuo, interfaz y sintaxis PowerShell. El workflow Windows añade comprobaciones nativas de hardware, lectura de los 33 ajustes, tres muestras continuas de RAM/CPU, escritura/restauración de preferencias del usuario de prueba y prioridad/restauración de un proceso propio. **Las mejoras de FPS y la detección en instalaciones de juegos reales no se han medido en tu equipo físico.** El ZIP es una primera versión de prueba, no una certificación de rendimiento. Antes de distribuirla públicamente hacen falta esa validación y una firma de código.
 
 Arquitectura: Electron con sandbox, aislamiento de contexto, sin Node en el renderer, CSP local e IPC limitado a operaciones conocidas. El backend valida datos; los comandos PowerShell son del paquete y se pasan como argumentos/base64, sin ejecutar texto del usuario. La interfaz trata nombres de juegos como texto.
