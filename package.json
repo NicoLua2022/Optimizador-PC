@@ -1,0 +1,27 @@
+{
+  "name": "nexo-pc",
+  "version": "0.1.0",
+  "description": "Asistente de rendimiento para juegos en Windows, con cambios reversibles",
+  "private": true,
+  "main": "app/main.cjs",
+  "author": "NicoLua2022",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "prestart": "node node_modules/electron/install.js",
+    "test": "node --test --test-isolation=none test/*.test.cjs",
+    "check": "node scripts/check.cjs",
+    "preview": "node scripts/preview.cjs",
+    "test:ui": "playwright test",
+    "package:win": "node scripts/package.cjs",
+    "test:native": "node scripts/validate-windows.cjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "@playwright/test": "1.64.1",
+    "electron": "45.1.0"
+  }
+}
