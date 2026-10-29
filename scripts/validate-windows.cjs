@@ -63,4 +63,9 @@ const fs=require('node:fs');const os=require('node:os');
   } finally {
     try{if(target)await native.call('prioritySet',{...target,value:target.priority,restoring:true});}finally{child.kill();}
   }
-})().catch(e=>{console.error(e);process.exitCode=1;});
+})().catch(e=>{
+  console.error(e);
+  const message=String(e.stack||e).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A');
+  console.error('::error title=Validación nativa de NEXO::'+message);
+  process.exitCode=1;
+});
